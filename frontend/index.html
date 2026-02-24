@@ -2416,14 +2416,14 @@ Use **bold** and *italic* formatting.
                     <div class="form-group">
                         <label>Select Logo</label>
                         <div class="logo-picker" id="logoPicker">
-                            <div class="logo-option selected" data-logo="http://jalenward.com/images/WARD_TECH_SOLUTIONS_TRANS.png">
-                                <img src="http://jalenward.com/images/WARD_TECH_SOLUTIONS_TRANS.png" alt="Ward Tech">
+                            <div class="logo-option selected" data-logo="https://jalenward.com/images/WARD_TECH_SOLUTIONS_TRANS.png">
+                                <img src="https://jalenward.com/images/WARD_TECH_SOLUTIONS_TRANS.png" alt="Ward Tech">
                             </div>
-                            <div class="logo-option" data-logo="http://jalenward.com/images/impactiq-logo-full.png">
-                                <img src="http://jalenward.com/images/impactiq-logo-full.png" alt="ImpactIQ">
+                            <div class="logo-option" data-logo="https://jalenward.com/images/impactiq-logo-full.png">
+                                <img src="https://jalenward.com/images/impactiq-logo-full.png" alt="ImpactIQ">
                             </div>
-                            <div class="logo-option" data-logo="http://jalenward.com/images/bbw-logo.png">
-                                <img src="http://jalenward.com/images/bbw-logo.png" alt="BBW">
+                            <div class="logo-option" data-logo="https://jalenward.com/images/bbw-logo.png">
+                                <img src="https://jalenward.com/images/bbw-logo.png" alt="BBW">
                             </div>
                             <div class="logo-option" onclick="uploadCustomLogo()">
                                 <i class="fas fa-plus" style="font-size: 24px; color: var(--text-muted);"></i>
@@ -5488,7 +5488,7 @@ setTimeout(() => {
 // INVOICE WIZARD FUNCTIONS
 // ═══════════════════════════════════════════════════════════════
 let wizardPage = 1;
-let selectedLogo = 'http://jalenward.com/images/WARD_TECH_SOLUTIONS_TRANS.png';
+let selectedLogo = 'https://jalenward.com/images/WARD_TECH_SOLUTIONS_TRANS.png';
 
 function openInvoiceWizard() {
     document.getElementById('invoiceWizardOverlay').classList.add('active');
@@ -5644,14 +5644,14 @@ ${itemsHtml}
 <div class="amount-label">Total Amount Due</div>
 <div id="paypal-button-container"></div>
 <div class="secure-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="#3b82f6"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg><span>256-bit SSL Encrypted | Secure Payment</span></div>
-${includeZelle ? `<div class="divider"><span>or pay with</span></div><div class="zelle-section"><h3>Zelle</h3><img src="http://jalenward.com/images/zellejalen.png" alt="Zelle QR"><p style="color: #738199; font-size: 12px; margin-top: 12px;">Scan with your banking app</p></div>` : ''}
+${includeZelle ? `<div class="divider"><span>or pay with</span></div><div class="zelle-section"><h3>Zelle</h3><img src="https://jalenward.com/images/zellejalen.png" alt="Zelle QR"><p style="color: #738199; font-size: 12px; margin-top: 12px;">Scan with your banking app</p></div>` : ''}
 </div>
 <div class="footer"><img src="${logo}" class="footer-logo"><p>${companyName} &copy; ${new Date().getFullYear()} | <a href="https://jalenward.com">jalenward.com</a></p></div>
 </div>
-<script src="https://www.paypal.com/sdk/js?client-id=Ade9VnpDxS10kcrnn6iBq-OxIvEwZro867N1WVSLyvM54MiUMwDP1cT6GqnAusTBOE4_W5tsHDBgvpRA&currency=USD"></script>
-<script>
+<scr` + `ipt src="https://www.paypal.com/sdk/js?client-id=Ade9VnpDxS10kcrnn6iBq-OxIvEwZro867N1WVSLyvM54MiUMwDP1cT6GqnAusTBOE4_W5tsHDBgvpRA&currency=USD"></scr` + `ipt>
+<scr` + `ipt>
 if(typeof paypal!=='undefined'){paypal.Buttons({style:{layout:'vertical',color:'blue',shape:'rect',label:'pay',height:55},createOrder:function(data,actions){return actions.order.create({purchase_units:[{amount:{currency_code:'USD',value:'${total.toFixed(2)}'},description:'${companyName} - Professional Services',custom_id:'${invoiceNum}'}]});},onApprove:function(data,actions){return actions.order.capture().then(function(details){alert('Payment successful! Transaction ID: '+details.id);});}}).render('#paypal-button-container');}
-</script>
+</scr` + `ipt>
 </body>
 </html>`;
 }
