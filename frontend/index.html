@@ -9429,7 +9429,8 @@ const embyConfig = {
     viewMode: 'grid',
     currentView: 'browse',
     currentLibrary: null,
-    serverInfo: null
+    serverInfo: null,
+    userId: null
 };
 
 // Initialize Emby on page load
@@ -9531,13 +9532,14 @@ function getLibraryIcon(collectionType) {
 
 // Load recently added
 async function loadEmbyRecentlyAdded() {
-    if (!embyConfig.connected) return;
+    if (!embyConfig.connected || !embyConfig.userId) return;
 
     const content = document.getElementById('embyRecentContent');
     content.innerHTML = '<div class="media-placeholder"><i class="fas fa-spinner fa-spin"></i><h3>Loading...</h3></div>';
 
     try {
-        const response = await fetch(`${embyConfig.serverUrl}/Items/Latest?api_key=${embyConfig.apiKey}&Limit=20&Fields=Overview,MediaSources,RunTimeTicks`);
+        // Use user-specific endpoint for Items/Latest
+        const response = await fetch(`${embyConfig.serverUrl}/Users/${embyConfig.userId}/Items/Latest?api_key=${embyConfig.apiKey}&Limit=20&Fields=Overview,MediaSources,RunTimeTicks`);
         const items = await response.json();
 
         content.innerHTML = `
@@ -9552,7 +9554,7 @@ async function loadEmbyRecentlyAdded() {
 
 // Load favorites
 async function loadEmbyFavorites() {
-    if (!embyConfig.connected) {
+    if (!embyConfig.connected || !embyConfig.userId) {
         alert('Please connect to Emby first');
         return;
     }
@@ -9561,7 +9563,7 @@ async function loadEmbyFavorites() {
     content.innerHTML = '<div class="media-placeholder"><i class="fas fa-spinner fa-spin"></i><h3>Loading Favorites...</h3></div>';
 
     try {
-        const response = await fetch(`${embyConfig.serverUrl}/Items?api_key=${embyConfig.apiKey}&Filters=IsFavorite&Recursive=true&Fields=Overview,MediaSources,RunTimeTicks&Limit=50`);
+        const response = await fetch(`${embyConfig.serverUrl}/Users/${embyConfig.userId}/Items?api_key=${embyConfig.apiKey}&Filters=IsFavorite&Recursive=true&Fields=Overview,MediaSources,RunTimeTicks&Limit=50`);
         const data = await response.json();
 
         if (data.Items.length === 0) {
@@ -9576,7 +9578,7 @@ async function loadEmbyFavorites() {
 
 // Load continue watching
 async function loadEmbyContinue() {
-    if (!embyConfig.connected) {
+    if (!embyConfig.connected || !embyConfig.userId) {
         alert('Please connect to Emby first');
         return;
     }
@@ -9585,7 +9587,7 @@ async function loadEmbyContinue() {
     content.innerHTML = '<div class="media-placeholder"><i class="fas fa-spinner fa-spin"></i><h3>Loading Continue Watching...</h3></div>';
 
     try {
-        const response = await fetch(`${embyConfig.serverUrl}/Items?api_key=${embyConfig.apiKey}&Filters=IsResumable&Recursive=true&Fields=Overview,MediaSources,RunTimeTicks&Limit=20`);
+        const response = await fetch(`${embyConfig.serverUrl}/Users/${embyConfig.userId}/Items?api_key=${embyConfig.apiKey}&Filters=IsResumable&Recursive=true&Fields=Overview,MediaSources,RunTimeTicks&Limit=20`);
         const data = await response.json();
 
         if (data.Items.length === 0) {
@@ -9603,13 +9605,13 @@ async function searchEmby(event) {
     if (event.key !== 'Enter') return;
 
     const query = document.getElementById('embySearchInput')?.value;
-    if (!query || !embyConfig.connected) return;
+    if (!query || !embyConfig.connected || !embyConfig.userId) return;
 
     const content = document.getElementById('embyContent');
     content.innerHTML = '<div class="media-placeholder"><i class="fas fa-spinner fa-spin"></i><h3>Searching...</h3></div>';
 
     try {
-        const response = await fetch(`${embyConfig.serverUrl}/Items?api_key=${embyConfig.apiKey}&SearchTerm=${encodeURIComponent(query)}&Recursive=true&Fields=Overview,MediaSources,RunTimeTicks&Limit=50`);
+        const response = await fetch(`${embyConfig.serverUrl}/Users/${embyConfig.userId}/Items?api_key=${embyConfig.apiKey}&SearchTerm=${encodeURIComponent(query)}&Recursive=true&Fields=Overview,MediaSources,RunTimeTicks&Limit=50`);
         const data = await response.json();
 
         if (data.Items.length === 0) {
@@ -9774,6 +9776,15 @@ async function connectEmby() {
 
     await testEmbyConnection();
     if (embyConfig.connected) {
+        // Get user ID for API calls that require it
+        try {
+            const usersRes = await fetch(`${embyConfig.serverUrl}/Users?api_key=${embyConfig.apiKey}`);
+            const users = await usersRes.json();
+            embyConfig.userId = users[0]?.Id || null;
+            addTerminalLine(`[Emby] User: ${users[0]?.Name || 'Unknown'}`);
+        } catch (e) {
+            console.error('[Emby] Failed to get user ID:', e);
+        }
         await loadEmbyLibraries();
         updateConnectionStatus(true, embyConfig.serverInfo?.ServerName || 'Emby Server');
         addTerminalLine('[Emby] Connected to media server');
