@@ -5669,7 +5669,7 @@ function saveInvoiceToFile() {
     a.download = fileName + '.html';
     a.click();
 
-    alert(`Invoice saved!\\n\\nTo upload to jalenward.com:\\n1. File downloaded as ${fileName}.html\\n2. Upload to Z:\\\\public_html\\\\${fileName}.html\\n3. Access at www.jalenward.com/${fileName}.html`);
+    alert(`Invoice saved!\n\nTo upload to jalenward.com:\n1. File downloaded as ${fileName}.html\n2. Upload to Z:\\public_html\\${fileName}.html\n3. Access at www.jalenward.com/${fileName}.html`);
     addTerminalLine('[Invoice] Generated: ' + fileName + '.html');
     closeInvoiceWizard();
 }
@@ -5854,7 +5854,7 @@ function sendSignedDocument() {
     const email = document.getElementById('signRecipientEmail').value;
     const subject = document.getElementById('signSubject').value;
     if (!email) { alert('Please enter recipient email'); return; }
-    alert(`Document signed and sent to ${email}!\\nSubject: ${subject}`);
+    alert(`Document signed and sent to ${email}!\nSubject: ${subject}`);
     addTerminalLine('[E-Sign] Document sent to: ' + email);
     closeSignModal();
 }
@@ -6259,7 +6259,7 @@ setTimeout(() => {
     renderProposalMiniList();
 }, 300);
 
-console.log('Ward Tech Command Center v7.0 - Full Suite with Invoice Wizard, Calendar Events, E-Signature, AI Agents, MCP Servers, Light/Dark Mode, Draggable Widgets, Network Stats');
+console.log('Ward Tech Command Center v7.1 - Full Suite with Invoice Wizard, Calendar Events, E-Signature, AI Agents, MCP Servers, Light/Dark Mode, Draggable Widgets, Network Stats - Build ' + Date.now());
     </script>
 </body>
 </html>
