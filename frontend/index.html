@@ -9972,12 +9972,18 @@ async function loadEmbyDashboard() {
         const serverInfo = await infoRes.json();
         addTerminalLine(`[Emby] Connected to ${serverInfo.ServerName} v${serverInfo.Version}`);
 
+        // Get user ID for API calls that require it
+        const usersRes = await fetch(`${EMBY_SERVER}/Users?api_key=${EMBY_API_KEY}`);
+        const users = await usersRes.json();
+        embyUserId = users[0]?.Id || null;
+        addTerminalLine(`[Emby] User: ${users[0]?.Name || 'Unknown'}`);
+
         // Get libraries
         const libRes = await fetch(`${EMBY_SERVER}/Library/MediaFolders?api_key=${EMBY_API_KEY}`);
         const libData = await libRes.json();
 
-        // Get recent items from all libraries
-        const recentRes = await fetch(`${EMBY_SERVER}/Items/Latest?api_key=${EMBY_API_KEY}&Limit=30&Fields=Overview,MediaSources,RunTimeTicks`);
+        // Get recent items - use user-specific endpoint
+        const recentRes = await fetch(`${EMBY_SERVER}/Users/${embyUserId}/Items/Latest?api_key=${EMBY_API_KEY}&Limit=30&Fields=Overview,MediaSources,RunTimeTicks`);
         const recentItems = await recentRes.json();
 
         embyItems = recentItems || [];
@@ -10206,7 +10212,8 @@ async function searchNetflixContent(event) {
         }
 
         try {
-            const res = await fetch(`${EMBY_SERVER}/Items?api_key=${EMBY_API_KEY}&SearchTerm=${encodeURIComponent(query)}&Recursive=true&Limit=30&Fields=Overview,MediaSources,RunTimeTicks`);
+            // Use user-specific endpoint for search
+            const res = await fetch(`${EMBY_SERVER}/Users/${embyUserId}/Items?api_key=${EMBY_API_KEY}&SearchTerm=${encodeURIComponent(query)}&Recursive=true&Limit=30&Fields=Overview,MediaSources,RunTimeTicks`);
             const data = await res.json();
             renderEmbyDashboard(data.Items || [], []);
             addTerminalLine(`[Emby] Search: ${query} (${data.Items?.length || 0} results)`);
