@@ -13792,7 +13792,7 @@ async function showMediaDetail(itemId) {
 
     // Set backdrop immediately with both URLs (loads in parallel)
     const backdrop = document.getElementById('mediaDetailBackdrop');
-    backdrop.style.backgroundImage = `url('${backdropUrl}'), url('${primaryUrl}')`;
+    if (backdrop) backdrop.style.backgroundImage = `url('${backdropUrl}'), url('${primaryUrl}')`;
 
     try {
         // PARALLEL FETCH: Load item details AND similar items at the same time
@@ -13806,32 +13806,44 @@ async function showMediaDetail(itemId) {
 
         // Set poster (already pre-loaded above)
         const posterEl = document.getElementById('mediaDetailPoster');
-        posterEl.innerHTML = `<img src="${posterUrl}" alt="${escapeHtml(item.Name)}" onerror="this.parentElement.innerHTML='<div class=\\'poster-placeholder\\'><i class=\\'fas fa-film\\'></i></div>'">`;
+        if (posterEl) posterEl.innerHTML = `<img src="${posterUrl}" alt="${escapeHtml(item.Name)}" onerror="this.parentElement.innerHTML='<div class=\\'poster-placeholder\\'><i class=\\'fas fa-film\\'></i></div>'">`;
 
-        // Set title and tagline
-        document.getElementById('mediaDetailTitle').textContent = item.Name || 'Unknown Title';
+        // Set title and tagline (with null checks)
+        const titleEl = document.getElementById('mediaDetailTitle');
+        if (titleEl) titleEl.textContent = item.Name || 'Unknown Title';
         const taglineEl = document.getElementById('mediaDetailTagline');
-        taglineEl.textContent = item.Taglines?.[0] || '';
-        taglineEl.style.display = item.Taglines?.[0] ? 'block' : 'none';
+        if (taglineEl) {
+            taglineEl.textContent = item.Taglines?.[0] || '';
+            taglineEl.style.display = item.Taglines?.[0] ? 'block' : 'none';
+        }
 
-        // Set meta info (all synchronous, fast)
+        // Set meta info (all synchronous, fast) - with null checks
         const ratingEl = document.getElementById('mediaDetailRating');
-        ratingEl.querySelector('span').textContent = item.CommunityRating ? item.CommunityRating.toFixed(1) : 'N/A';
-        document.getElementById('mediaDetailYear').textContent = item.ProductionYear || '';
-        document.getElementById('mediaDetailRuntime').textContent = formatRuntime(item.RunTimeTicks);
-        document.getElementById('mediaDetailStudio').textContent = item.Studios?.map(s => s.Name).join(', ') || '-';
-        document.getElementById('mediaDetailDirector').textContent = item.People?.find(p => p.Type === 'Director')?.Name || '-';
-        document.getElementById('mediaDetailDate').textContent = item.PremiereDate ? new Date(item.PremiereDate).toLocaleDateString() : '-';
-        document.getElementById('mediaDetailContentRating').textContent = item.OfficialRating || '-';
+        if (ratingEl?.querySelector('span')) ratingEl.querySelector('span').textContent = item.CommunityRating ? item.CommunityRating.toFixed(1) : 'N/A';
+        const yearEl = document.getElementById('mediaDetailYear');
+        if (yearEl) yearEl.textContent = item.ProductionYear || '';
+        const runtimeEl = document.getElementById('mediaDetailRuntime');
+        if (runtimeEl) runtimeEl.textContent = formatRuntime(item.RunTimeTicks);
+        const studioEl = document.getElementById('mediaDetailStudio');
+        if (studioEl) studioEl.textContent = item.Studios?.map(s => s.Name).join(', ') || '-';
+        const directorEl = document.getElementById('mediaDetailDirector');
+        if (directorEl) directorEl.textContent = item.People?.find(p => p.Type === 'Director')?.Name || '-';
+        const dateEl = document.getElementById('mediaDetailDate');
+        if (dateEl) dateEl.textContent = item.PremiereDate ? new Date(item.PremiereDate).toLocaleDateString() : '-';
+        const contentRatingEl = document.getElementById('mediaDetailContentRating');
+        if (contentRatingEl) contentRatingEl.textContent = item.OfficialRating || '-';
 
-        // Set genres
+        // Set genres (with null check)
         const genresEl = document.getElementById('mediaDetailGenres');
-        genresEl.innerHTML = item.Genres?.length > 0
-            ? item.Genres.map(g => `<span class="media-detail-genre" onclick="filterByGenreAndClose('${g}')">${g}</span>`).join('')
-            : '';
+        if (genresEl) {
+            genresEl.innerHTML = item.Genres?.length > 0
+                ? item.Genres.map(g => `<span class="media-detail-genre" onclick="filterByGenreAndClose('${g}')">${g}</span>`).join('')
+                : '';
+        }
 
-        // Set overview
-        document.getElementById('mediaDetailOverview').textContent = item.Overview || 'No description available.';
+        // Set overview (with null check)
+        const overviewEl = document.getElementById('mediaDetailOverview');
+        if (overviewEl) overviewEl.textContent = item.Overview || 'No description available.';
 
         // Set buttons
         const playBtn = document.getElementById('mediaDetailPlayBtn');
@@ -13845,17 +13857,20 @@ async function showMediaDetail(itemId) {
         // Process similar items (already fetched in parallel)
         const similarData = await similarRes.json();
         const similarGrid = document.getElementById('mediaDetailSimilar');
-        if (similarData.Items?.length > 0) {
-            similarGrid.innerHTML = similarData.Items.map(item => renderEmbyCard(item)).join('');
-        } else {
-            similarGrid.innerHTML = '<div style="color: #6b7280; padding: 20px;">No recommendations available</div>';
+        if (similarGrid) {
+            if (similarData.Items?.length > 0) {
+                similarGrid.innerHTML = similarData.Items.map(item => renderEmbyCard(item)).join('');
+            } else {
+                similarGrid.innerHTML = '<div style="color: #6b7280; padding: 20px;">No recommendations available</div>';
+            }
         }
 
         // Load series episodes in background (non-blocking)
+        const collectionSection = document.getElementById('mediaDetailCollectionSection');
         if (item.SeriesId) {
             loadSeriesEpisodes(item.SeriesId, item.SeriesName);
-        } else {
-            document.getElementById('mediaDetailCollectionSection').style.display = 'none';
+        } else if (collectionSection) {
+            collectionSection.style.display = 'none';
         }
 
     } catch (e) {
