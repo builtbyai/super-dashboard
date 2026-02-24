@@ -1311,23 +1311,30 @@
         .netflix-row-content::-webkit-scrollbar-track { background: #1a1a1a; border-radius: 2px; }
         .netflix-row-content::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 2px; }
 
-        /* Netflix Media Cards */
-        .netflix-card { flex: 0 0 180px; cursor: pointer; transition: all 0.3s; }
-        .netflix-card:hover { transform: scale(1.05); }
-        .netflix-card-poster { position: relative; aspect-ratio: 2/3; background: #1f2937; border-radius: 12px; overflow: hidden; margin-bottom: 8px; }
-        .netflix-card-poster img { width: 100%; height: 100%; object-fit: cover; }
+        /* Netflix Media Cards - Enhanced */
+        .netflix-card { flex: 0 0 180px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
+        .netflix-card:hover { transform: scale(1.08) translateY(-8px); z-index: 10; }
+        .netflix-card-poster { position: relative; aspect-ratio: 2/3; background: #1f2937; border-radius: 12px; overflow: hidden; margin-bottom: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .netflix-card:hover .netflix-card-poster { box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
+        .netflix-card-poster img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+        .netflix-card:hover .netflix-card-poster img { transform: scale(1.05); }
         .netflix-card-poster .poster-placeholder { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); }
         .netflix-card-poster .poster-placeholder i { font-size: 48px; color: #3b82f6; opacity: 0.5; }
-        .netflix-card-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0); display: flex; align-items: center; justify-content: center; transition: background 0.3s; }
-        .netflix-card:hover .netflix-card-overlay { background: rgba(0,0,0,0.4); }
-        .netflix-card-overlay i { font-size: 40px; color: #fff; opacity: 0; transform: scale(0.8); transition: all 0.3s; }
-        .netflix-card:hover .netflix-card-overlay i { opacity: 1; transform: scale(1); }
-        .netflix-card-progress { position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: #374151; }
-        .netflix-card-progress-bar { height: 100%; background: #3b82f6; }
-        .netflix-card-info { }
-        .netflix-card-title { font-size: 13px; font-weight: 500; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .netflix-card-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s; }
+        .netflix-card:hover .netflix-card-overlay { background: linear-gradient(transparent 40%, rgba(0,0,0,0.9) 100%); }
+        .netflix-card-overlay i.play-icon { font-size: 48px; color: #fff; opacity: 0; transform: scale(0.5); transition: all 0.3s; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5)); }
+        .netflix-card:hover .netflix-card-overlay i.play-icon { opacity: 1; transform: scale(1); }
+        .netflix-card-quick-actions { position: absolute; bottom: 12px; left: 12px; right: 12px; display: flex; gap: 6px; opacity: 0; transform: translateY(10px); transition: all 0.3s; }
+        .netflix-card:hover .netflix-card-quick-actions { opacity: 1; transform: translateY(0); }
+        .netflix-card-quick-btn { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); color: #fff; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .netflix-card-quick-btn:hover { background: #e50914; border-color: #e50914; transform: scale(1.1); }
+        .netflix-card-progress { position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: rgba(255,255,255,0.2); }
+        .netflix-card-progress-bar { height: 100%; background: #e50914; border-radius: 0 2px 2px 0; }
+        .netflix-card-info { padding: 4px 0; }
+        .netflix-card-title { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .netflix-card-meta { display: flex; align-items: center; gap: 8px; }
-        .netflix-card-rating { background: #22d3ee; color: #000; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+        .netflix-card-rating { background: #e50914; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+        .netflix-card-year { color: #6b7280; font-size: 11px; }
 
         /* Netflix Continue Watching Cards (Horizontal) */
         .netflix-card-wide { flex: 0 0 280px; }
@@ -1350,15 +1357,85 @@
         .netflix-list-item-genre { font-size: 11px; color: #6b7280; }
         .netflix-list-item-rating { background: #22d3ee; color: #000; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; align-self: flex-start; margin-top: 4px; }
 
-        /* Netflix Player Modal */
-        .netflix-player-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; display: flex; align-items: center; justify-content: center; }
-        .netflix-player-container { width: 90%; max-width: 1200px; background: #0B0B0B; border-radius: 16px; overflow: hidden; position: relative; }
-        .netflix-player-close { position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.5); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; font-size: 18px; cursor: pointer; z-index: 10; transition: background 0.2s; }
-        .netflix-player-close:hover { background: rgba(0,0,0,0.8); }
-        .netflix-player-container video { width: 100%; aspect-ratio: 16/9; background: #000; }
-        .netflix-player-info { padding: 20px; }
-        .netflix-player-info h3 { font-size: 20px; color: #fff; margin-bottom: 8px; }
-        .netflix-player-info p { color: #9ca3af; font-size: 14px; }
+        /* Netflix Player Modal - Enhanced */
+        .netflix-player-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .netflix-player-container { width: 95%; max-width: 1400px; background: #0B0B0B; border-radius: 16px; overflow: hidden; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8); }
+        .netflix-player-close { position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.7); border: none; color: #fff; width: 44px; height: 44px; border-radius: 50%; font-size: 20px; cursor: pointer; z-index: 100; transition: all 0.2s; backdrop-filter: blur(10px); }
+        .netflix-player-close:hover { background: #e50914; transform: scale(1.1); }
+        .netflix-player-wrapper { position: relative; width: 100%; background: #000; }
+        .netflix-player-container video { width: 100%; aspect-ratio: 16/9; background: #000; display: block; }
+
+        /* Video Player Controls */
+        .netflix-player-controls { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 40px 20px 20px; opacity: 0; transition: opacity 0.3s; }
+        .netflix-player-wrapper:hover .netflix-player-controls { opacity: 1; }
+        .netflix-player-progress { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; cursor: pointer; margin-bottom: 16px; position: relative; }
+        .netflix-player-progress:hover { height: 6px; }
+        .netflix-player-progress-bar { height: 100%; background: #e50914; border-radius: 2px; width: 0%; transition: width 0.1s; }
+        .netflix-player-progress-thumb { position: absolute; top: 50%; right: 0; transform: translate(50%, -50%); width: 14px; height: 14px; background: #e50914; border-radius: 50%; opacity: 0; transition: opacity 0.2s; }
+        .netflix-player-progress:hover .netflix-player-progress-thumb { opacity: 1; }
+        .netflix-player-buttons { display: flex; align-items: center; gap: 20px; }
+        .netflix-player-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; padding: 8px; border-radius: 4px; transition: all 0.2s; }
+        .netflix-player-btn:hover { background: rgba(255,255,255,0.1); transform: scale(1.1); }
+        .netflix-player-btn.play-pause { font-size: 28px; }
+        .netflix-player-time { color: #fff; font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+        .netflix-player-volume { display: flex; align-items: center; gap: 8px; }
+        .netflix-player-volume-slider { width: 80px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; cursor: pointer; appearance: none; }
+        .netflix-player-volume-slider::-webkit-slider-thumb { appearance: none; width: 12px; height: 12px; background: #fff; border-radius: 50%; cursor: pointer; }
+        .netflix-player-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+        .netflix-player-quality { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+
+        /* Player Info Panel */
+        .netflix-player-info { padding: 24px; background: linear-gradient(180deg, #0B0B0B 0%, #111 100%); }
+        .netflix-player-info h3 { font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+        .netflix-player-info p { color: #9ca3af; font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
+        .netflix-player-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+        .netflix-player-action-btn { display: flex; align-items: center; gap: 8px; padding: 10px 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #fff; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+        .netflix-player-action-btn:hover { background: rgba(255,255,255,0.2); }
+        .netflix-player-action-btn.primary { background: #e50914; border-color: #e50914; }
+        .netflix-player-action-btn.primary:hover { background: #b81d24; }
+
+        /* Player Toast Animation */
+        @keyframes fadeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
+        .player-toast { font-family: 'Inter', sans-serif; }
+
+        /* Netflix Loading State */
+        .netflix-loading { display: flex; align-items: center; justify-content: center; height: 200px; }
+        .netflix-loading-spinner { width: 48px; height: 48px; border: 3px solid #333; border-top-color: #e50914; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Netflix Genre Tags */
+        .netflix-genre-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .netflix-genre-tag { padding: 6px 14px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; color: #fff; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+        .netflix-genre-tag:hover { background: #e50914; border-color: #e50914; }
+        .netflix-genre-tag.active { background: #e50914; border-color: #e50914; }
+
+        /* Netflix Library Browser */
+        .netflix-library-nav { display: flex; gap: 8px; padding: 0 24px; margin-bottom: 16px; overflow-x: auto; }
+        .netflix-library-btn { padding: 8px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: #9ca3af; font-size: 13px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+        .netflix-library-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .netflix-library-btn.active { background: #e50914; border-color: #e50914; color: #fff; }
+
+        /* Responsive Netflix Dashboard */
+        @media (max-width: 1200px) {
+            .netflix-dashboard { grid-template-columns: 180px 1fr 240px; }
+        }
+        @media (max-width: 992px) {
+            .netflix-dashboard { grid-template-columns: 1fr; }
+            .netflix-sidebar, .netflix-right-sidebar { display: none; }
+            .netflix-hero { margin: 0 16px 16px; height: 300px; }
+            .netflix-hero-content h1 { font-size: 32px; }
+            .netflix-content { padding: 0 16px 16px; }
+            .netflix-card { flex: 0 0 140px; }
+        }
+        @media (max-width: 576px) {
+            .netflix-hero { height: 220px; margin: 0 8px 12px; }
+            .netflix-hero-content { bottom: 20px; left: 20px; }
+            .netflix-hero-content h1 { font-size: 24px; }
+            .netflix-content { padding: 0 8px 12px; }
+            .netflix-card { flex: 0 0 120px; }
+            .netflix-card-poster { border-radius: 8px; }
+            .netflix-player-container { width: 100%; border-radius: 0; }
+        }
 
         /* ═══════════════════════════════════════════════════════════════
            CUSTOMER PROFILE DASHBOARD
@@ -2799,16 +2876,47 @@
                     </div>
                 </div>
 
-                <!-- Video Player Modal -->
+                <!-- Enhanced Video Player Modal -->
                 <div class="netflix-player-modal" id="netflixPlayerModal" style="display: none;">
                     <div class="netflix-player-container">
                         <button class="netflix-player-close" onclick="closeNetflixPlayer()"><i class="fas fa-times"></i></button>
-                        <video id="netflixVideoPlayer" controls autoplay>
-                            <source src="" type="video/mp4">
-                        </video>
+                        <div class="netflix-player-wrapper">
+                            <video id="netflixVideoPlayer" autoplay playsinline>
+                                <source src="" type="video/mp4">
+                            </video>
+                            <!-- Custom Video Controls -->
+                            <div class="netflix-player-controls">
+                                <div class="netflix-player-progress" onclick="seekVideo(event)">
+                                    <div class="netflix-player-progress-bar"></div>
+                                    <div class="netflix-player-progress-thumb"></div>
+                                </div>
+                                <div class="netflix-player-buttons">
+                                    <button class="netflix-player-btn play-pause-btn" onclick="togglePlayPause()"><i class="fas fa-pause"></i></button>
+                                    <button class="netflix-player-btn" onclick="skipBackward(10)" title="Rewind 10s"><i class="fas fa-undo"></i></button>
+                                    <button class="netflix-player-btn" onclick="skipForward(10)" title="Forward 10s"><i class="fas fa-redo"></i></button>
+                                    <div class="netflix-player-volume">
+                                        <button class="netflix-player-btn volume-btn" onclick="toggleMute()"><i class="fas fa-volume-up"></i></button>
+                                        <input type="range" class="netflix-player-volume-slider" min="0" max="1" step="0.1" value="1" onchange="setVolume(this.value)">
+                                    </div>
+                                    <span class="netflix-player-time"><span class="current-time">0:00</span> / <span class="duration-time">0:00</span></span>
+                                    <div class="netflix-player-right">
+                                        <button class="netflix-player-quality" onclick="openInEmby()">Open in Emby</button>
+                                        <button class="netflix-player-btn" onclick="toggleFullscreen()" title="Fullscreen"><i class="fas fa-expand"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="netflix-player-info">
                             <h3 id="playerTitle">Now Playing</h3>
                             <p id="playerDescription"></p>
+                            <div class="netflix-player-actions">
+                                <button class="netflix-player-action-btn" onclick="skipBackward(30)"><i class="fas fa-backward"></i> -30s</button>
+                                <button class="netflix-player-action-btn" onclick="skipForward(30)"><i class="fas fa-forward"></i> +30s</button>
+                                <button class="netflix-player-action-btn" onclick="openInEmby()"><i class="fas fa-external-link-alt"></i> Open in Emby</button>
+                            </div>
+                            <p style="margin-top: 12px; font-size: 12px; color: #6b7280;">
+                                <strong>Keyboard Shortcuts:</strong> Space/K = Play/Pause • ←/→ = Skip 10s • ↑/↓ = Volume • F = Fullscreen • M = Mute • Esc = Close
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -2822,18 +2930,25 @@
                         </div>
                         <div class="modal-body">
                             <div class="form-group">
-                                <label>Media Source</label>
-                                <div style="display: flex; gap: 8px; margin-top: 8px;">
-                                    <button class="btn btn-primary" id="btnMediaCloud" onclick="setMediaSource('cloud')" style="flex: 1;"><i class="fas fa-cloud"></i> Cloud (R2)</button>
-                                    <button class="btn" id="btnMediaEmby" onclick="setMediaSource('emby')" style="flex: 1;"><i class="fas fa-server"></i> Emby</button>
+                                <label>Media Server Connection</label>
+                                <div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; padding: 12px; margin-top: 8px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <i class="fas fa-server" style="color: #3b82f6;"></i>
+                                        <span style="font-weight: 600; color: #fff;">Emby Media Server</span>
+                                        <span id="embyConnectionBadge" style="margin-left: auto; font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #22c55e; color: #000;">Connected</span>
+                                    </div>
+                                    <div style="font-size: 12px; color: #9ca3af;">Streaming via HTTPS Tunnel</div>
                                 </div>
                             </div>
-                            <div class="form-group" id="embySettings" style="display: none; margin-top: 16px;">
+                            <div class="form-group" style="margin-top: 16px;">
                                 <label>Emby Server URL</label>
-                                <input type="text" class="input" id="embyServerUrl" value="https://media.allstarmediapro.com">
+                                <input type="text" class="input" id="embyServerUrl" value="https://media.allstarmediapro.com" style="background: rgba(255,255,255,0.05);">
                                 <label style="margin-top: 12px;">API Key</label>
-                                <input type="text" class="input" id="embyApiKey" value="8cf23d5e47174b8bae3b58e5eb3e6718">
-                                <button class="btn btn-primary" onclick="connectEmby()" style="margin-top: 12px; width: 100%;"><i class="fas fa-plug"></i> Connect to Emby</button>
+                                <input type="text" class="input" id="embyApiKey" value="8cf23d5e47174b8bae3b58e5eb3e6718" style="background: rgba(255,255,255,0.05);">
+                                <div style="display: flex; gap: 8px; margin-top: 12px;">
+                                    <button class="btn btn-primary" onclick="connectEmby()" style="flex: 1;"><i class="fas fa-plug"></i> Reconnect</button>
+                                    <button class="btn" onclick="loadEmbyDashboard()" style="flex: 1;"><i class="fas fa-sync"></i> Refresh Library</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -10014,40 +10129,118 @@ async function loadEmbyDashboard() {
 }
 
 function renderEmbyDashboard(items, libraries) {
-    // Update Hero section with featured item
-    if (items.length > 0) {
+    // Pick a random featured item for variety
+    const moviesForHero = items.filter(i => i.Type === 'Movie' && i.Id);
+    if (moviesForHero.length > 0) {
+        featuredMedia = moviesForHero[Math.floor(Math.random() * Math.min(5, moviesForHero.length))];
+    } else if (items.length > 0) {
         featuredMedia = items[0];
+    }
+
+    // Update Hero section
+    if (featuredMedia) {
         const heroTitle = document.getElementById('heroTitle');
         const heroDesc = document.getElementById('heroDescription');
         const hero = document.getElementById('netflixHero');
 
         if (heroTitle) heroTitle.textContent = featuredMedia.Name || 'Featured Media';
-        if (heroDesc) heroDesc.textContent = featuredMedia.Overview?.substring(0, 200) || `${featuredMedia.Type} • ${formatRuntime(featuredMedia.RunTimeTicks)}`;
 
-        // Set hero background
+        const year = featuredMedia.ProductionYear ? ` (${featuredMedia.ProductionYear})` : '';
+        const runtime = formatRuntime(featuredMedia.RunTimeTicks);
+        const rating = featuredMedia.CommunityRating ? `⭐ ${featuredMedia.CommunityRating.toFixed(1)}` : '';
+        const desc = featuredMedia.Overview?.substring(0, 180) || `${featuredMedia.Type}${year}`;
+
+        if (heroDesc) heroDesc.textContent = `${desc}${desc.length >= 180 ? '...' : ''}`;
+
+        // Set hero background with gradient
         if (hero && featuredMedia.Id) {
-            hero.style.backgroundImage = `url(${EMBY_SERVER}/Items/${featuredMedia.Id}/Images/Backdrop?api_key=${EMBY_API_KEY}&maxWidth=1200)`;
+            hero.style.backgroundImage = `url(${EMBY_SERVER}/Items/${featuredMedia.Id}/Images/Backdrop?api_key=${EMBY_API_KEY}&maxWidth=1400)`;
             hero.style.backgroundSize = 'cover';
-            hero.style.backgroundPosition = 'center';
+            hero.style.backgroundPosition = 'center top';
+        }
+
+        // Update hero meta
+        const heroMeta = document.querySelector('.netflix-hero-meta');
+        if (heroMeta) {
+            heroMeta.innerHTML = `
+                ${rating ? `<span class="netflix-rating"><i class="fas fa-star"></i> ${featuredMedia.CommunityRating.toFixed(1)}</span>` : ''}
+                ${year ? `<span>${featuredMedia.ProductionYear}</span>` : ''}
+                ${runtime ? `<span>${runtime}</span>` : ''}
+                <span>${featuredMedia.Type || 'Media'}</span>
+            `;
         }
     }
 
     // Render Movies row
     const movies = items.filter(i => i.Type === 'Movie');
-    renderEmbyRow('myLibrary', movies, 'Movies');
+    renderEmbyRow('myLibrary', movies.length > 0 ? movies : items.slice(0, 10), 'Movies');
 
     // Render TV Shows / Series
     const shows = items.filter(i => i.Type === 'Series' || i.Type === 'Episode');
-    renderEmbyRow('recentlyAdded', shows.length > 0 ? shows : items.slice(0, 10), 'TV Shows');
+    renderEmbyRow('recentlyAdded', shows.length > 0 ? shows : items.filter(i => i.Type !== 'Movie').slice(0, 10), 'TV Shows');
 
-    // Render Continue Watching
-    renderEmbyRow('continueWatching', items.slice(0, 5), 'Continue Watching', true);
+    // Render Continue Watching (items with progress)
+    const continueItems = items.filter(i => i.UserData?.PlaybackPositionTicks > 0).slice(0, 8);
+    renderEmbyRow('continueWatching', continueItems.length > 0 ? continueItems : items.slice(0, 5), 'Continue Watching', true);
 
     // Render sidebars
-    renderEmbySidebar('popularList', items.slice(0, 4));
+    const topRated = [...items].sort((a, b) => (b.CommunityRating || 0) - (a.CommunityRating || 0)).slice(0, 4);
+    renderEmbySidebar('popularList', topRated);
     renderEmbySidebar('favoritesList', items.slice(4, 7));
 
-    addTerminalLine(`[Emby] Loaded ${items.length} media items`);
+    addTerminalLine(`[Emby] Loaded ${items.length} media items (${movies.length} movies, ${shows.length} shows)`);
+
+    // Update connection badge
+    const badge = document.getElementById('embyConnectionBadge');
+    if (badge) {
+        badge.textContent = 'Connected';
+        badge.style.background = '#22c55e';
+    }
+}
+
+async function browseEmbyLibrary(libraryId, libraryName) {
+    addTerminalLine(`[Emby] Browsing library: ${libraryName}`);
+
+    try {
+        const res = await fetch(`${EMBY_SERVER}/Users/${embyUserId}/Items?api_key=${EMBY_API_KEY}&ParentId=${libraryId}&Recursive=true&Limit=50&Fields=Overview,MediaSources,RunTimeTicks,CommunityRating,ProductionYear&SortBy=DateCreated&SortOrder=Descending`);
+        const data = await res.json();
+
+        embyItems = data.Items || [];
+        renderEmbyDashboard(embyItems, []);
+        showToast(`Loaded ${embyItems.length} items from ${libraryName}`, 'success');
+    } catch (e) {
+        showToast('Failed to load library', 'error');
+    }
+}
+
+async function loadAllMovies() {
+    addTerminalLine('[Emby] Loading all movies...');
+
+    try {
+        const res = await fetch(`${EMBY_SERVER}/Users/${embyUserId}/Items?api_key=${EMBY_API_KEY}&IncludeItemTypes=Movie&Recursive=true&Limit=100&Fields=Overview,MediaSources,RunTimeTicks,CommunityRating,ProductionYear&SortBy=DateCreated&SortOrder=Descending`);
+        const data = await res.json();
+
+        embyItems = data.Items || [];
+        renderEmbyDashboard(embyItems, []);
+        showToast(`Loaded ${embyItems.length} movies`, 'success');
+    } catch (e) {
+        showToast('Failed to load movies', 'error');
+    }
+}
+
+async function loadAllTVShows() {
+    addTerminalLine('[Emby] Loading all TV shows...');
+
+    try {
+        const res = await fetch(`${EMBY_SERVER}/Users/${embyUserId}/Items?api_key=${EMBY_API_KEY}&IncludeItemTypes=Series&Recursive=true&Limit=100&Fields=Overview,MediaSources,RunTimeTicks,CommunityRating,ProductionYear&SortBy=DateCreated&SortOrder=Descending`);
+        const data = await res.json();
+
+        embyItems = data.Items || [];
+        renderEmbyDashboard(embyItems, []);
+        showToast(`Loaded ${embyItems.length} TV shows`, 'success');
+    } catch (e) {
+        showToast('Failed to load TV shows', 'error');
+    }
 }
 
 function renderEmbyRow(containerId, items, title, wide = false) {
@@ -10065,22 +10258,52 @@ function renderEmbyCard(item) {
     const title = (item.Name || 'Untitled').substring(0, 30);
     const imageUrl = `${EMBY_SERVER}/Items/${item.Id}/Images/Primary?api_key=${EMBY_API_KEY}&height=280`;
     const runtime = formatRuntime(item.RunTimeTicks);
+    const year = item.ProductionYear || '';
+    const rating = item.CommunityRating ? item.CommunityRating.toFixed(1) : '';
 
     return `
         <div class="netflix-card" onclick="playEmbyMedia('${item.Id}', '${escapeHtml(item.Name)}')">
             <div class="netflix-card-poster">
-                <img src="${imageUrl}" alt="${escapeHtml(title)}" onerror="this.parentElement.innerHTML='<div class=\\'poster-placeholder\\'><i class=\\'fas fa-film\\'></i></div>'">
-                <div class="netflix-card-overlay"><i class="fas fa-play"></i></div>
+                <img src="${imageUrl}" alt="${escapeHtml(title)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'poster-placeholder\\'><i class=\\'fas fa-film\\'></i></div>'">
+                <div class="netflix-card-overlay">
+                    <i class="fas fa-play-circle play-icon"></i>
+                </div>
+                <div class="netflix-card-quick-actions" onclick="event.stopPropagation()">
+                    <button class="netflix-card-quick-btn" onclick="playEmbyMedia('${item.Id}', '${escapeHtml(item.Name)}')" title="Play"><i class="fas fa-play"></i></button>
+                    <button class="netflix-card-quick-btn" onclick="showMediaInfo('${item.Id}')" title="More Info"><i class="fas fa-info"></i></button>
+                    <button class="netflix-card-quick-btn" onclick="openInEmbyDirect('${item.Id}')" title="Open in Emby"><i class="fas fa-external-link-alt"></i></button>
+                </div>
             </div>
             <div class="netflix-card-info">
                 <div class="netflix-card-title">${escapeHtml(title)}</div>
                 <div class="netflix-card-meta">
-                    <span class="netflix-card-rating">${item.Type || 'Media'}</span>
+                    <span class="netflix-card-rating">${rating ? '⭐ ' + rating : item.Type || 'Media'}</span>
+                    ${year ? `<span class="netflix-card-year">${year}</span>` : ''}
                     ${runtime ? `<span style="color:#6b7280;font-size:11px;">${runtime}</span>` : ''}
                 </div>
             </div>
         </div>
     `;
+}
+
+function openInEmbyDirect(itemId) {
+    window.open(`${EMBY_SERVER}/web/index.html#!/item?id=${itemId}`, '_blank');
+}
+
+async function showMediaInfo(itemId) {
+    try {
+        const res = await fetch(`${EMBY_SERVER}/Users/${embyUserId}/Items/${itemId}?api_key=${EMBY_API_KEY}&Fields=Overview,People,Genres,Studios`);
+        const item = await res.json();
+
+        const genres = item.Genres?.join(', ') || 'Unknown';
+        const overview = item.Overview || 'No description available.';
+        const year = item.ProductionYear || '';
+        const runtime = formatRuntime(item.RunTimeTicks);
+
+        showToast(`${item.Name} (${year}) • ${genres} • ${runtime}`, 'info', 5000);
+    } catch (e) {
+        showToast('Could not load media info', 'error');
+    }
 }
 
 function renderEmbyCardWide(item) {
@@ -10125,7 +10348,12 @@ function renderEmbySidebar(containerId, items) {
     }
 }
 
+let currentMediaId = null;
+let currentMediaTitle = '';
+
 function playEmbyMedia(itemId, title) {
+    currentMediaId = itemId;
+    currentMediaTitle = title;
     const streamUrl = `${EMBY_SERVER}/Videos/${itemId}/stream?api_key=${EMBY_API_KEY}&Static=true`;
     const modal = document.getElementById('netflixPlayerModal');
     const video = document.getElementById('netflixVideoPlayer');
@@ -10134,20 +10362,201 @@ function playEmbyMedia(itemId, title) {
 
     if (modal) modal.style.display = 'flex';
     if (playerTitle) playerTitle.textContent = title;
-    if (playerDesc) playerDesc.textContent = 'Playing from Emby Server';
+    if (playerDesc) playerDesc.textContent = 'Streaming via HTTPS • media.allstarmediapro.com';
 
     if (video) {
         video.src = streamUrl;
         video.load();
+
+        // Setup video event listeners
+        video.onloadedmetadata = () => updatePlayerDuration(video);
+        video.ontimeupdate = () => updatePlayerProgress(video);
+        video.onplay = () => updatePlayPauseBtn(true);
+        video.onpause = () => updatePlayPauseBtn(false);
+        video.onvolumechange = () => updateVolumeIcon(video);
+
         video.play().catch(e => {
             console.log('Autoplay prevented:', e);
-            // Open in new tab as fallback
-            window.open(`${EMBY_SERVER}/web/index.html#!/item?id=${itemId}`, '_blank');
+            showToast('Click play to start', 'info');
         });
     }
 
+    // Add keyboard listener for player controls
+    document.addEventListener('keydown', handlePlayerKeyboard);
     addTerminalLine(`[Emby] Playing: ${title}`);
-    showToast(`Playing: ${title}`, 'success');
+    showToast(`Now Playing: ${title}`, 'success');
+}
+
+function handlePlayerKeyboard(e) {
+    const modal = document.getElementById('netflixPlayerModal');
+    if (!modal || modal.style.display === 'none') return;
+
+    const video = document.getElementById('netflixVideoPlayer');
+    if (!video) return;
+
+    switch(e.key) {
+        case ' ':
+        case 'k':
+            e.preventDefault();
+            togglePlayPause();
+            break;
+        case 'ArrowLeft':
+            e.preventDefault();
+            video.currentTime = Math.max(0, video.currentTime - 10);
+            showPlayerToast('⏪ -10s');
+            break;
+        case 'ArrowRight':
+            e.preventDefault();
+            video.currentTime = Math.min(video.duration, video.currentTime + 10);
+            showPlayerToast('⏩ +10s');
+            break;
+        case 'ArrowUp':
+            e.preventDefault();
+            video.volume = Math.min(1, video.volume + 0.1);
+            showPlayerToast(`🔊 ${Math.round(video.volume * 100)}%`);
+            break;
+        case 'ArrowDown':
+            e.preventDefault();
+            video.volume = Math.max(0, video.volume - 0.1);
+            showPlayerToast(`🔉 ${Math.round(video.volume * 100)}%`);
+            break;
+        case 'f':
+            e.preventDefault();
+            toggleFullscreen();
+            break;
+        case 'm':
+            e.preventDefault();
+            video.muted = !video.muted;
+            showPlayerToast(video.muted ? '🔇 Muted' : '🔊 Unmuted');
+            break;
+        case 'Escape':
+            closeNetflixPlayer();
+            break;
+    }
+}
+
+function showPlayerToast(msg) {
+    const toast = document.createElement('div');
+    toast.className = 'player-toast';
+    toast.textContent = msg;
+    toast.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:#fff;padding:12px 24px;border-radius:8px;font-size:18px;z-index:1000;pointer-events:none;animation:fadeOut 1s forwards;';
+    const wrapper = document.querySelector('.netflix-player-wrapper');
+    if (wrapper) {
+        wrapper.appendChild(toast);
+        setTimeout(() => toast.remove(), 1000);
+    }
+}
+
+function togglePlayPause() {
+    const video = document.getElementById('netflixVideoPlayer');
+    if (video) {
+        if (video.paused) {
+            video.play();
+        } else {
+            video.pause();
+        }
+    }
+}
+
+function updatePlayPauseBtn(isPlaying) {
+    const btn = document.querySelector('.play-pause-btn i');
+    if (btn) btn.className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
+}
+
+function updatePlayerProgress(video) {
+    const progressBar = document.querySelector('.netflix-player-progress-bar');
+    const currentTimeEl = document.querySelector('.current-time');
+    if (progressBar && video.duration) {
+        const percent = (video.currentTime / video.duration) * 100;
+        progressBar.style.width = percent + '%';
+    }
+    if (currentTimeEl) {
+        currentTimeEl.textContent = formatVideoTime(video.currentTime);
+    }
+}
+
+function updatePlayerDuration(video) {
+    const durationEl = document.querySelector('.duration-time');
+    if (durationEl) {
+        durationEl.textContent = formatVideoTime(video.duration);
+    }
+}
+
+function formatVideoTime(seconds) {
+    if (!seconds || isNaN(seconds)) return '0:00';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    if (h > 0) return `${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    return `${m}:${s.toString().padStart(2,'0')}`;
+}
+
+function seekVideo(event) {
+    const video = document.getElementById('netflixVideoPlayer');
+    const progressContainer = event.currentTarget;
+    if (video && progressContainer) {
+        const rect = progressContainer.getBoundingClientRect();
+        const percent = (event.clientX - rect.left) / rect.width;
+        video.currentTime = percent * video.duration;
+    }
+}
+
+function updateVolumeIcon(video) {
+    const icon = document.querySelector('.volume-btn i');
+    if (!icon) return;
+    if (video.muted || video.volume === 0) icon.className = 'fas fa-volume-mute';
+    else if (video.volume < 0.5) icon.className = 'fas fa-volume-down';
+    else icon.className = 'fas fa-volume-up';
+}
+
+function setVolume(value) {
+    const video = document.getElementById('netflixVideoPlayer');
+    if (video) {
+        video.volume = value;
+        video.muted = value === 0;
+    }
+}
+
+function toggleMute() {
+    const video = document.getElementById('netflixVideoPlayer');
+    if (video) video.muted = !video.muted;
+}
+
+function toggleFullscreen() {
+    const container = document.querySelector('.netflix-player-wrapper');
+    if (!container) return;
+
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    } else {
+        container.requestFullscreen().catch(e => {
+            // Fallback: try video element
+            const video = document.getElementById('netflixVideoPlayer');
+            if (video) video.requestFullscreen();
+        });
+    }
+}
+
+function skipForward(seconds = 10) {
+    const video = document.getElementById('netflixVideoPlayer');
+    if (video) {
+        video.currentTime = Math.min(video.duration, video.currentTime + seconds);
+        showPlayerToast(`⏩ +${seconds}s`);
+    }
+}
+
+function skipBackward(seconds = 10) {
+    const video = document.getElementById('netflixVideoPlayer');
+    if (video) {
+        video.currentTime = Math.max(0, video.currentTime - seconds);
+        showPlayerToast(`⏪ -${seconds}s`);
+    }
+}
+
+function openInEmby() {
+    if (currentMediaId) {
+        window.open(`${EMBY_SERVER}/web/index.html#!/item?id=${currentMediaId}`, '_blank');
+    }
 }
 
 function playFeaturedMedia() {
@@ -10176,8 +10585,18 @@ function closeNetflixPlayer() {
     if (video) {
         video.pause();
         video.src = '';
+        video.onloadedmetadata = null;
+        video.ontimeupdate = null;
+        video.onplay = null;
+        video.onpause = null;
+        video.onvolumechange = null;
     }
     if (modal) modal.style.display = 'none';
+
+    // Remove keyboard listener
+    document.removeEventListener('keydown', handlePlayerKeyboard);
+    currentMediaId = null;
+    currentMediaTitle = '';
 }
 
 function scrollNetflixRow(rowId, direction) {
