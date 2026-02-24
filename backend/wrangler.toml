@@ -4,3 +4,24 @@ compatibility_date = "2024-01-01"
 
 [vars]
 ENVIRONMENT = "production"
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "super-dashboard-db"
+database_id = "f9dca1b9-6d6f-405f-bebf-bf0f8dea7eb4"
+
+# R2 Storage
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "super-dashboard-files"
+
+# Durable Objects for WebRTC Signaling
+[durable_objects]
+bindings = [
+  { name = "WEBRTC_ROOMS", class_name = "WebRTCRoom" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["WebRTCRoom"]
