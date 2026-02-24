@@ -1415,6 +1415,74 @@
         .netflix-library-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
         .netflix-library-btn.active { background: #e50914; border-color: #e50914; color: #fff; }
 
+        /* Netflix Browse Section */
+        .netflix-browse { padding: 24px; }
+        .netflix-browse-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px; }
+        .netflix-browse-title { font-size: 28px; font-weight: 700; color: #fff; }
+        .netflix-browse-count { font-size: 14px; color: #6b7280; margin-left: 12px; }
+        .netflix-browse-controls { display: flex; align-items: center; gap: 16px; }
+
+        /* Category Filter */
+        .netflix-categories { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
+        .netflix-categories::-webkit-scrollbar { height: 4px; }
+        .netflix-categories::-webkit-scrollbar-thumb { background: #e50914; border-radius: 2px; }
+        .netflix-category-btn { padding: 10px 24px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 24px; color: #9ca3af; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+        .netflix-category-btn:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.3); }
+        .netflix-category-btn.active { background: #e50914; border-color: #e50914; color: #fff; }
+
+        /* Genre Filter */
+        .netflix-genres { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .netflix-genre-btn { padding: 6px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; color: #9ca3af; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+        .netflix-genre-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .netflix-genre-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+
+        /* View Type Toggle */
+        .netflix-view-toggle { display: flex; background: rgba(255,255,255,0.05); border-radius: 8px; overflow: hidden; }
+        .netflix-view-btn { padding: 10px 16px; background: none; border: none; color: #6b7280; font-size: 16px; cursor: pointer; transition: all 0.2s; }
+        .netflix-view-btn:hover { color: #fff; }
+        .netflix-view-btn.active { background: #e50914; color: #fff; }
+
+        /* Sort Dropdown */
+        .netflix-sort { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 16px; color: #fff; font-size: 13px; cursor: pointer; outline: none; }
+        .netflix-sort option { background: #1a1a1a; color: #fff; }
+
+        /* Grid View */
+        .netflix-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 24px; margin-bottom: 32px; }
+        .netflix-grid .netflix-card { flex: none; width: 100%; }
+
+        /* List View */
+        .netflix-list-view { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+        .netflix-list-view .netflix-list-card { display: flex; gap: 16px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 12px; cursor: pointer; transition: all 0.2s; }
+        .netflix-list-view .netflix-list-card:hover { background: rgba(255,255,255,0.08); transform: translateX(4px); }
+        .netflix-list-card-poster { width: 80px; height: 120px; border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+        .netflix-list-card-poster img { width: 100%; height: 100%; object-fit: cover; }
+        .netflix-list-card-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .netflix-list-card-title { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+        .netflix-list-card-meta { display: flex; gap: 12px; align-items: center; color: #6b7280; font-size: 13px; margin-bottom: 8px; }
+        .netflix-list-card-desc { font-size: 13px; color: #9ca3af; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .netflix-list-card-actions { display: flex; gap: 8px; align-items: center; }
+        .netflix-list-card-btn { padding: 10px 20px; background: #e50914; border: none; border-radius: 6px; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .netflix-list-card-btn:hover { background: #b81d24; }
+        .netflix-list-card-btn.secondary { background: rgba(255,255,255,0.1); }
+        .netflix-list-card-btn.secondary:hover { background: rgba(255,255,255,0.2); }
+
+        /* Compact View */
+        .netflix-compact { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 32px; }
+        .netflix-compact .netflix-card { flex: none; }
+        .netflix-compact .netflix-card-poster { border-radius: 8px; }
+        .netflix-compact .netflix-card-info { display: none; }
+
+        /* Load More */
+        .netflix-load-more { display: flex; justify-content: center; padding: 32px; }
+        .netflix-load-more-btn { padding: 14px 48px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .netflix-load-more-btn:hover { background: #e50914; border-color: #e50914; }
+        .netflix-load-more-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Infinite Scroll Sentinel */
+        .netflix-scroll-sentinel { height: 100px; display: flex; align-items: center; justify-content: center; }
+        .netflix-loading-more { color: #6b7280; font-size: 14px; display: flex; align-items: center; gap: 12px; }
+        .netflix-loading-more .spinner { width: 24px; height: 24px; border: 2px solid #333; border-top-color: #e50914; border-radius: 50%; animation: spin 1s linear infinite; }
+
         /* Responsive Netflix Dashboard */
         @media (max-width: 1200px) {
             .netflix-dashboard { grid-template-columns: 180px 1fr 240px; }
@@ -2726,30 +2794,30 @@
                         <nav class="netflix-nav">
                             <div class="netflix-nav-section">
                                 <span class="netflix-nav-title">MENU</span>
-                                <a href="#" class="netflix-nav-item active" onclick="switchNetflixView('home')">
+                                <a href="#" class="netflix-nav-item active" onclick="switchNetflixView('home'); setActiveNav(this)">
                                     <i class="fas fa-home"></i><span>Home</span>
                                 </a>
-                                <a href="#" class="netflix-nav-item" onclick="switchNetflixView('movies')">
+                                <a href="#" class="netflix-nav-item" onclick="enterBrowseMode('movies'); setActiveNav(this)">
                                     <i class="fas fa-film"></i><span>Movies</span>
                                 </a>
-                                <a href="#" class="netflix-nav-item" onclick="switchNetflixView('tvshows')">
+                                <a href="#" class="netflix-nav-item" onclick="enterBrowseMode('tvshows'); setActiveNav(this)">
                                     <i class="fas fa-tv"></i><span>TV Shows</span>
                                 </a>
-                                <a href="#" class="netflix-nav-item" onclick="switchNetflixView('watchlist')">
-                                    <i class="fas fa-clock"></i><span>Watch List</span>
+                                <a href="#" class="netflix-nav-item" onclick="enterBrowseMode('all'); setActiveNav(this)">
+                                    <i class="fas fa-th-large"></i><span>Browse All</span>
                                 </a>
                             </div>
 
                             <div class="netflix-nav-section">
-                                <span class="netflix-nav-title">LIBRARY</span>
-                                <a href="#" class="netflix-nav-item" onclick="loadNetflixRecent()">
-                                    <i class="fas fa-history"></i><span>Recent</span>
+                                <span class="netflix-nav-title">DISCOVER</span>
+                                <a href="#" class="netflix-nav-item" onclick="enterBrowseMode('recent'); setActiveNav(this)">
+                                    <i class="fas fa-clock"></i><span>Recently Added</span>
                                 </a>
-                                <a href="#" class="netflix-nav-item" onclick="loadNetflixFavorites()">
+                                <a href="#" class="netflix-nav-item" onclick="enterBrowseMode('toprated'); setActiveNav(this)">
+                                    <i class="fas fa-star"></i><span>Top Rated</span>
+                                </a>
+                                <a href="#" class="netflix-nav-item" onclick="loadNetflixFavorites(); setActiveNav(this)">
                                     <i class="fas fa-heart"></i><span>Favorites</span>
-                                </a>
-                                <a href="#" class="netflix-nav-item" onclick="document.getElementById('cloudMediaFile').click()">
-                                    <i class="fas fa-upload"></i><span>Upload</span>
                                 </a>
                             </div>
 
@@ -10329,6 +10397,304 @@ async function loadAllTVShows() {
     }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// NETFLIX BROWSE MODE - Categories, Genres, Views, Infinite Scroll
+// ═══════════════════════════════════════════════════════════════
+let browseState = {
+    items: [],
+    totalCount: 0,
+    currentPage: 0,
+    pageSize: 30,
+    category: 'all', // all, movies, tvshows
+    genre: null,
+    sortBy: 'DateCreated',
+    sortOrder: 'Descending',
+    viewType: 'grid', // grid, list, compact
+    isLoading: false,
+    hasMore: true,
+    genres: []
+};
+
+// Enter browse mode with full library
+async function enterBrowseMode(category = 'all') {
+    browseState.category = category;
+    browseState.currentPage = 0;
+    browseState.items = [];
+    browseState.hasMore = true;
+    browseState.genre = null;
+
+    // Show browse UI
+    const mainContent = document.querySelector('.netflix-main .netflix-content');
+    if (!mainContent) return;
+
+    mainContent.innerHTML = `
+        <div class="netflix-browse">
+            <div class="netflix-browse-header">
+                <div>
+                    <span class="netflix-browse-title">Browse Library</span>
+                    <span class="netflix-browse-count" id="browseCount"></span>
+                </div>
+                <div class="netflix-browse-controls">
+                    <select class="netflix-sort" id="browseSortBy" onchange="changeBrowseSort()">
+                        <option value="DateCreated">Recently Added</option>
+                        <option value="SortName">A-Z</option>
+                        <option value="CommunityRating">Top Rated</option>
+                        <option value="ProductionYear">Year</option>
+                        <option value="Runtime">Runtime</option>
+                    </select>
+                    <div class="netflix-view-toggle">
+                        <button class="netflix-view-btn ${browseState.viewType === 'grid' ? 'active' : ''}" onclick="changeViewType('grid')" title="Grid View"><i class="fas fa-th-large"></i></button>
+                        <button class="netflix-view-btn ${browseState.viewType === 'list' ? 'active' : ''}" onclick="changeViewType('list')" title="List View"><i class="fas fa-list"></i></button>
+                        <button class="netflix-view-btn ${browseState.viewType === 'compact' ? 'active' : ''}" onclick="changeViewType('compact')" title="Compact View"><i class="fas fa-th"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="netflix-categories" id="browseCategories">
+                <button class="netflix-category-btn ${category === 'all' ? 'active' : ''}" onclick="switchBrowseCategory('all')">All</button>
+                <button class="netflix-category-btn ${category === 'movies' ? 'active' : ''}" onclick="switchBrowseCategory('movies')">Movies</button>
+                <button class="netflix-category-btn ${category === 'tvshows' ? 'active' : ''}" onclick="switchBrowseCategory('tvshows')">TV Shows</button>
+                <button class="netflix-category-btn ${category === 'recent' ? 'active' : ''}" onclick="switchBrowseCategory('recent')">Recently Added</button>
+                <button class="netflix-category-btn ${category === 'toprated' ? 'active' : ''}" onclick="switchBrowseCategory('toprated')">Top Rated</button>
+            </div>
+
+            <div class="netflix-genres" id="browseGenres">
+                <button class="netflix-genre-btn active" onclick="filterByGenre(null)">All Genres</button>
+            </div>
+
+            <div id="browseGrid" class="netflix-grid"></div>
+
+            <div class="netflix-scroll-sentinel" id="scrollSentinel">
+                <div class="netflix-loading-more" id="loadingMore" style="display: none;">
+                    <div class="spinner"></div>
+                    <span>Loading more...</span>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Load genres
+    await loadGenres();
+
+    // Load initial items
+    await loadBrowseItems();
+
+    // Setup infinite scroll
+    setupInfiniteScroll();
+}
+
+async function loadGenres() {
+    try {
+        const itemTypes = browseState.category === 'tvshows' ? 'Series' : (browseState.category === 'movies' ? 'Movie' : 'Movie,Series');
+        const res = await fetch(`${EMBY_SERVER}/Genres?api_key=${EMBY_API_KEY}&UserId=${embyUserId}&IncludeItemTypes=${itemTypes}&Recursive=true`);
+        const data = await res.json();
+
+        browseState.genres = data.Items || [];
+
+        const container = document.getElementById('browseGenres');
+        if (container && browseState.genres.length > 0) {
+            container.innerHTML = `
+                <button class="netflix-genre-btn ${!browseState.genre ? 'active' : ''}" onclick="filterByGenre(null)">All Genres</button>
+                ${browseState.genres.slice(0, 15).map(g => `
+                    <button class="netflix-genre-btn ${browseState.genre === g.Name ? 'active' : ''}" onclick="filterByGenre('${g.Name}')">${g.Name}</button>
+                `).join('')}
+            `;
+        }
+    } catch (e) {
+        console.error('Failed to load genres:', e);
+    }
+}
+
+async function loadBrowseItems(append = false) {
+    if (browseState.isLoading) return;
+    browseState.isLoading = true;
+
+    const loadingEl = document.getElementById('loadingMore');
+    if (loadingEl) loadingEl.style.display = 'flex';
+
+    try {
+        let itemTypes = '';
+        if (browseState.category === 'movies') itemTypes = 'Movie';
+        else if (browseState.category === 'tvshows') itemTypes = 'Series';
+        else if (browseState.category === 'all') itemTypes = 'Movie,Series';
+
+        let sortBy = browseState.sortBy;
+        let sortOrder = browseState.sortOrder;
+
+        if (browseState.category === 'toprated') {
+            sortBy = 'CommunityRating';
+            sortOrder = 'Descending';
+            itemTypes = 'Movie,Series';
+        } else if (browseState.category === 'recent') {
+            sortBy = 'DateCreated';
+            sortOrder = 'Descending';
+            itemTypes = 'Movie,Series';
+        }
+
+        const startIndex = browseState.currentPage * browseState.pageSize;
+        let url = `${EMBY_SERVER}/Users/${embyUserId}/Items?api_key=${EMBY_API_KEY}&Recursive=true&StartIndex=${startIndex}&Limit=${browseState.pageSize}&Fields=Overview,RunTimeTicks,CommunityRating,ProductionYear,Genres&SortBy=${sortBy}&SortOrder=${sortOrder}`;
+
+        if (itemTypes) url += `&IncludeItemTypes=${itemTypes}`;
+        if (browseState.genre) url += `&Genres=${encodeURIComponent(browseState.genre)}`;
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        const newItems = data.Items || [];
+        browseState.totalCount = data.TotalRecordCount || 0;
+
+        if (append) {
+            browseState.items = [...browseState.items, ...newItems];
+        } else {
+            browseState.items = newItems;
+        }
+
+        browseState.hasMore = browseState.items.length < browseState.totalCount;
+        browseState.currentPage++;
+
+        renderBrowseGrid();
+        updateBrowseCount();
+
+    } catch (e) {
+        console.error('Failed to load browse items:', e);
+        showToast('Failed to load items', 'error');
+    }
+
+    browseState.isLoading = false;
+    if (loadingEl) loadingEl.style.display = 'none';
+}
+
+function renderBrowseGrid() {
+    const container = document.getElementById('browseGrid');
+    if (!container) return;
+
+    // Set the correct class based on view type
+    container.className = browseState.viewType === 'list' ? 'netflix-list-view' : (browseState.viewType === 'compact' ? 'netflix-compact' : 'netflix-grid');
+
+    if (browseState.viewType === 'list') {
+        container.innerHTML = browseState.items.map(item => renderBrowseListCard(item)).join('');
+    } else {
+        container.innerHTML = browseState.items.map(item => renderEmbyCard(item)).join('');
+    }
+}
+
+function renderBrowseListCard(item) {
+    const title = item.Name || 'Untitled';
+    const imageUrl = `${EMBY_SERVER}/Items/${item.Id}/Images/Primary?api_key=${EMBY_API_KEY}&height=180`;
+    const year = item.ProductionYear || '';
+    const runtime = formatRuntime(item.RunTimeTicks);
+    const rating = item.CommunityRating ? item.CommunityRating.toFixed(1) : '';
+    const genres = item.Genres?.slice(0, 3).join(', ') || item.Type;
+    const desc = item.Overview?.substring(0, 150) || 'No description available.';
+
+    return `
+        <div class="netflix-list-card" onclick="playEmbyMedia('${item.Id}', '${escapeHtml(item.Name)}')">
+            <div class="netflix-list-card-poster">
+                <img src="${imageUrl}" alt="${escapeHtml(title)}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 80 120%22><rect fill=%22%231f2937%22 width=%22100%%22 height=%22100%%22/><text x=%2250%%22 y=%2250%%22 fill=%22%233b82f6%22 text-anchor=%22middle%22 font-size=%2224%22>🎬</text></svg>'">
+            </div>
+            <div class="netflix-list-card-info">
+                <div class="netflix-list-card-title">${escapeHtml(title)}</div>
+                <div class="netflix-list-card-meta">
+                    ${rating ? `<span>⭐ ${rating}</span>` : ''}
+                    ${year ? `<span>${year}</span>` : ''}
+                    ${runtime ? `<span>${runtime}</span>` : ''}
+                    <span>${genres}</span>
+                </div>
+                <div class="netflix-list-card-desc">${escapeHtml(desc)}${desc.length >= 150 ? '...' : ''}</div>
+            </div>
+            <div class="netflix-list-card-actions" onclick="event.stopPropagation()">
+                <button class="netflix-list-card-btn" onclick="playEmbyMedia('${item.Id}', '${escapeHtml(item.Name)}')"><i class="fas fa-play"></i> Play</button>
+                <button class="netflix-list-card-btn secondary" onclick="openInEmbyDirect('${item.Id}')"><i class="fas fa-external-link-alt"></i></button>
+            </div>
+        </div>
+    `;
+}
+
+function updateBrowseCount() {
+    const countEl = document.getElementById('browseCount');
+    if (countEl) {
+        countEl.textContent = `(${browseState.items.length} of ${browseState.totalCount})`;
+    }
+}
+
+function switchBrowseCategory(category) {
+    browseState.category = category;
+    browseState.currentPage = 0;
+    browseState.items = [];
+    browseState.genre = null;
+    browseState.hasMore = true;
+
+    // Update active state
+    document.querySelectorAll('.netflix-category-btn').forEach(btn => btn.classList.remove('active'));
+    event?.target?.classList.add('active');
+
+    loadGenres();
+    loadBrowseItems();
+}
+
+function filterByGenre(genre) {
+    browseState.genre = genre;
+    browseState.currentPage = 0;
+    browseState.items = [];
+    browseState.hasMore = true;
+
+    // Update active state
+    document.querySelectorAll('.netflix-genre-btn').forEach(btn => btn.classList.remove('active'));
+    event?.target?.classList.add('active');
+
+    loadBrowseItems();
+}
+
+function changeBrowseSort() {
+    const select = document.getElementById('browseSortBy');
+    if (select) {
+        browseState.sortBy = select.value;
+        browseState.sortOrder = (select.value === 'SortName' || select.value === 'ProductionYear') ? 'Ascending' : 'Descending';
+        browseState.currentPage = 0;
+        browseState.items = [];
+        browseState.hasMore = true;
+        loadBrowseItems();
+    }
+}
+
+function changeViewType(viewType) {
+    browseState.viewType = viewType;
+
+    // Update active state
+    document.querySelectorAll('.netflix-view-btn').forEach(btn => btn.classList.remove('active'));
+    event?.target?.classList.add('active');
+
+    renderBrowseGrid();
+}
+
+function setupInfiniteScroll() {
+    const sentinel = document.getElementById('scrollSentinel');
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && browseState.hasMore && !browseState.isLoading) {
+                loadBrowseItems(true);
+            }
+        });
+    }, { rootMargin: '200px' });
+
+    observer.observe(sentinel);
+}
+
+// Quick access functions for navigation
+function browseMovies() {
+    enterBrowseMode('movies');
+}
+
+function browseTVShows() {
+    enterBrowseMode('tvshows');
+}
+
+function browseAll() {
+    enterBrowseMode('all');
+}
+
 function renderEmbyRow(containerId, items, title, wide = false) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -10703,12 +11069,14 @@ function scrollNetflixRow(rowId, direction) {
 }
 
 function switchNetflixView(view) {
-    document.querySelectorAll('.netflix-nav-item').forEach(item => item.classList.remove('active'));
-    event?.target?.closest('.netflix-nav-item')?.classList.add('active');
-
     if (view === 'home') loadEmbyDashboard();
-    if (view === 'movies') filterEmbyContent('Movie');
-    if (view === 'tvshows') filterEmbyContent('Series');
+    else if (view === 'movies') enterBrowseMode('movies');
+    else if (view === 'tvshows') enterBrowseMode('tvshows');
+}
+
+function setActiveNav(element) {
+    document.querySelectorAll('.netflix-nav-item').forEach(item => item.classList.remove('active'));
+    if (element) element.classList.add('active');
 }
 
 function filterNetflixContent(type) {
