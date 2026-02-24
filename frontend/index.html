@@ -12,6 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         /* ═══════════════════════════════════════════════════════════════
            WARD TECH ULTIMATE DATA COMMAND CENTER v3.0
@@ -617,26 +618,53 @@
         .invoice-total-final { font-size: 20px; color: var(--blue); border-top: 2px solid var(--border); padding-top: 12px; }
 
         /* ═══════════════════════════════════════════════════════════════
-           EMAIL SUITE STYLES
+           EMAIL SUITE STYLES (Enhanced 3-Panel Layout)
         ═══════════════════════════════════════════════════════════════ */
-        .email-container { display: grid; grid-template-columns: 320px 1fr; gap: 20px; height: calc(100vh - 140px); }
-        .email-list { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; }
-        .email-list-header { padding: 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .email-suite-layout { display: grid; grid-template-columns: 200px 350px 1fr; gap: 0; height: calc(100vh - 140px); background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .email-sidebar { background: var(--bg-input); border-right: 1px solid var(--border); padding: 16px; }
+        .email-folders { display: flex; flex-direction: column; gap: 2px; }
+        .email-folder { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; cursor: pointer; transition: all 0.15s; color: var(--text-muted); font-size: 13px; }
+        .email-folder:hover { background: var(--bg-card-hover); color: var(--text); }
+        .email-folder.active { background: var(--blue-glow); color: var(--blue); font-weight: 500; }
+        .email-folder i { width: 16px; text-align: center; }
+        .email-folder-name { flex: 1; }
+        .email-folder-count { font-size: 11px; padding: 2px 8px; background: var(--bg-card); border-radius: 10px; color: var(--text-muted); }
+        .email-folder.active .email-folder-count { background: var(--blue); color: white; }
+        .email-labels { display: flex; flex-direction: column; gap: 4px; }
+        .email-label { display: flex; align-items: center; gap: 10px; padding: 8px 12px; font-size: 12px; color: var(--text-muted); cursor: pointer; border-radius: 6px; }
+        .email-label:hover { background: var(--bg-card-hover); }
+        .email-label-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .email-list-panel { border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .email-list-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--bg-input); }
+        .email-search { display: flex; align-items: center; gap: 8px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; }
+        .email-search i { color: var(--text-muted); font-size: 12px; }
+        .email-search input { background: none; border: none; outline: none; color: var(--text); font-size: 12px; width: 150px; }
         .email-list-items { flex: 1; overflow-y: auto; }
-        .email-item { display: flex; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.2s; }
+        .email-item { display: flex; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: all 0.15s; position: relative; }
         .email-item:hover { background: var(--bg-card-hover); }
-        .email-item.active { background: var(--blue-glow); }
-        .email-item.unread { background: rgba(59, 130, 246, 0.05); }
-        .email-item.unread .email-subject { font-weight: 600; }
+        .email-item.active { background: var(--blue-glow); border-left: 3px solid var(--blue); }
+        .email-item.unread { background: rgba(59, 130, 246, 0.03); }
+        .email-item.unread::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 4px; height: 4px; background: var(--blue); border-radius: 50%; }
+        .email-item.unread .email-subject { font-weight: 600; color: var(--text); }
+        .email-item-checkbox { width: 16px; height: 16px; accent-color: var(--blue); }
         .email-avatar-small { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--purple)); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; color: white; flex-shrink: 0; }
         .email-content { flex: 1; min-width: 0; }
-        .email-subject { font-size: 14px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .email-preview { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .email-meta { font-size: 11px; color: var(--text-muted); text-align: right; flex-shrink: 0; }
-        .email-viewer { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; }
+        .email-from { font-size: 13px; font-weight: 500; margin-bottom: 2px; display: flex; justify-content: space-between; }
+        .email-subject { font-size: 13px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-muted); }
+        .email-preview { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.7; }
+        .email-meta { font-size: 10px; color: var(--text-muted); }
+        .email-star { color: var(--text-muted); cursor: pointer; }
+        .email-star.starred { color: var(--warning); }
+        .email-viewer-panel { display: flex; flex-direction: column; }
+        .email-viewer { flex: 1; display: flex; flex-direction: column; }
+        .email-viewer-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); text-align: center; padding: 40px; }
+        .email-viewer-empty i { font-size: 64px; margin-bottom: 20px; opacity: 0.3; }
+        .email-viewer-empty h3 { font-size: 18px; margin-bottom: 8px; color: var(--text); }
         .email-viewer-header { padding: 20px; border-bottom: 1px solid var(--border); }
-        .email-viewer-body { flex: 1; padding: 20px; overflow-y: auto; font-size: 14px; line-height: 1.7; }
-        .email-viewer-actions { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+        .email-viewer-subject { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+        .email-viewer-meta { display: flex; align-items: center; gap: 12px; }
+        .email-viewer-body { flex: 1; padding: 24px; overflow-y: auto; font-size: 14px; line-height: 1.8; }
+        .email-viewer-actions { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; background: var(--bg-input); }
         .unread-dot { width: 8px; height: 8px; background: var(--blue); border-radius: 50%; flex-shrink: 0; }
 
         /* ═══════════════════════════════════════════════════════════════
@@ -737,6 +765,22 @@
         .file-tree { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
         .file-tree-item { display: flex; align-items: center; gap: 8px; padding: 6px 12px; cursor: pointer; border-radius: 4px; }
         .file-tree-item:hover { background: var(--bg-card-hover); }
+
+        /* Drive List Styles */
+        .drive-list { display: flex; flex-direction: column; gap: 8px; }
+        .drive-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px; background: var(--bg-input); border-radius: 8px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+        .drive-item:hover { background: var(--bg-card-hover); border-color: var(--border); }
+        .drive-item.active { background: var(--blue-glow); border-color: var(--border-blue); }
+        .drive-item i { font-size: 18px; margin-top: 2px; }
+        .drive-info { flex: 1; min-width: 0; }
+        .drive-name { font-size: 12px; font-weight: 500; margin-bottom: 2px; }
+        .drive-space { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; }
+        .drive-bar { height: 4px; background: var(--bg-card); border-radius: 2px; overflow: hidden; }
+        .drive-bar-fill { height: 100%; background: var(--blue); border-radius: 2px; transition: width 0.3s; }
+        .file-breadcrumb { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: var(--bg-input); border-radius: 6px; margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+        .breadcrumb-item { cursor: pointer; color: var(--blue); padding: 2px 4px; border-radius: 3px; }
+        .breadcrumb-item:hover { background: var(--bg-card-hover); }
+        .breadcrumb-sep { color: var(--text-muted); }
         .notes-editor { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: 500px; }
         .notes-input { width: 100%; height: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; padding: 16px; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 13px; resize: none; }
         .notes-preview { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; overflow-y: auto; }
@@ -871,30 +915,64 @@
         .visual-panel { display: none; flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-top: none; border-radius: 0 0 12px 12px; overflow: hidden; }
         .visual-panel.active { display: block; }
 
-        /* Mind Map Styles */
-        .mindmap-container { display: grid; grid-template-columns: 1fr 250px; gap: 0; height: 100%; }
-        .mindmap-toolbar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--bg-input); border-bottom: 1px solid var(--border); }
-        .mindmap-canvas { flex: 1; position: relative; overflow: auto; background-image: radial-gradient(circle, var(--border) 1px, transparent 1px); background-size: 30px 30px; min-height: 500px; padding: 40px; }
-        .mindmap-node { position: absolute; min-width: 120px; padding: 12px 20px; background: var(--bg-card); border: 2px solid var(--blue); border-radius: 12px; cursor: move; transition: all 0.2s; user-select: none; z-index: 10; }
-        .mindmap-node:hover { box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3); }
-        .mindmap-node.root { background: linear-gradient(135deg, var(--blue), var(--purple)); border: none; color: white; min-width: 160px; font-weight: 600; text-align: center; left: 50%; top: 50%; transform: translate(-50%, -50%); }
-        .mindmap-node.selected { box-shadow: 0 0 0 3px var(--cyan), 0 4px 20px rgba(6, 182, 212, 0.4); }
-        .mindmap-node-content { outline: none; font-size: 14px; line-height: 1.4; }
-        .mindmap-node-content:focus { outline: none; }
-        .mindmap-child-indicator { position: absolute; right: -8px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; background: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; cursor: pointer; opacity: 0; transition: opacity 0.2s; }
-        .mindmap-node:hover .mindmap-child-indicator { opacity: 1; }
-        .mindmap-connection { position: absolute; pointer-events: none; z-index: 5; }
-        .mindmap-sidebar { background: var(--bg-card); border-left: 1px solid var(--border); padding: 16px; overflow-y: auto; }
-        .mindmap-sidebar h4 { font-size: 12px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 1px; }
+        /* Mind Map D3.js Styles */
+        .mindmap-container { display: grid; grid-template-columns: 1fr; gap: 0; height: calc(100vh - 200px); position: relative; background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%); }
+        .mindmap-toolbar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(195, 163, 91, 0.3); z-index: 50; }
+        .mindmap-toolbar .btn { background: rgba(195, 163, 91, 0.1); border: 1px solid rgba(195, 163, 91, 0.4); color: #C3A35B; }
+        .mindmap-toolbar .btn:hover { background: rgba(195, 163, 91, 0.3); }
+        .mindmap-toolbar .btn.active { background: rgba(195, 163, 91, 0.4); }
+        .mindmap-canvas { flex: 1; position: relative; overflow: hidden; min-height: 600px; }
+        .mindmap-canvas svg { width: 100%; height: 100%; }
+
+        /* D3 Node Styles */
+        .node-center { filter: drop-shadow(0 0 20px rgba(195, 163, 91, 0.6)); cursor: pointer; }
+        .node-session { filter: drop-shadow(0 0 10px rgba(100, 149, 237, 0.4)); cursor: pointer; }
+        .node-tag { filter: drop-shadow(0 0 8px rgba(80, 200, 120, 0.3)); cursor: pointer; }
+        .node-idea { filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.4)); cursor: pointer; }
+        .link { stroke-opacity: 0.4; transition: stroke-opacity 0.2s; }
+        .link:hover { stroke-opacity: 1; }
+
+        /* Mind Map Floating Panels */
+        .mindmap-legend { position: absolute; bottom: 20px; left: 20px; background: rgba(20, 20, 30, 0.95); border: 1px solid rgba(195, 163, 91, 0.3); border-radius: 12px; padding: 16px 20px; z-index: 100; backdrop-filter: blur(10px); }
+        .mindmap-legend h4 { color: #C3A35B; font-size: 0.9rem; margin-bottom: 12px; font-weight: 600; }
+        .mindmap-legend-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; color: #ccc; font-size: 0.85rem; }
+        .mindmap-legend-color { width: 16px; height: 16px; border-radius: 50%; }
+
+        .mindmap-stats { position: absolute; bottom: 20px; right: 20px; background: rgba(20, 20, 30, 0.95); border: 1px solid rgba(195, 163, 91, 0.3); border-radius: 12px; padding: 16px 20px; z-index: 100; backdrop-filter: blur(10px); }
+        .mindmap-stats h4 { color: #C3A35B; font-size: 0.9rem; margin-bottom: 12px; font-weight: 600; }
+        .mindmap-stat-item { display: flex; justify-content: space-between; gap: 30px; margin-bottom: 6px; color: #ccc; font-size: 0.85rem; }
+        .mindmap-stat-value { color: #C3A35B; font-weight: 600; }
+
+        .mindmap-controls { position: absolute; top: 70px; right: 20px; background: rgba(20, 20, 30, 0.95); border: 1px solid rgba(195, 163, 91, 0.3); border-radius: 12px; padding: 12px; z-index: 100; backdrop-filter: blur(10px); display: flex; flex-direction: column; gap: 8px; }
+        .mindmap-controls button { padding: 10px 16px; background: rgba(195, 163, 91, 0.1); border: 1px solid rgba(195, 163, 91, 0.4); border-radius: 6px; color: #C3A35B; cursor: pointer; transition: all 0.3s; font-size: 13px; }
+        .mindmap-controls button:hover { background: rgba(195, 163, 91, 0.3); }
+        .mindmap-controls button.active { background: rgba(195, 163, 91, 0.4); border-color: #C3A35B; }
+
+        .mindmap-tooltip { position: fixed; background: rgba(20, 20, 30, 0.98); border: 1px solid #C3A35B; border-radius: 8px; padding: 12px 16px; color: #fff; font-size: 0.85rem; pointer-events: none; opacity: 0; transition: opacity 0.2s; max-width: 300px; z-index: 200; }
+        .mindmap-tooltip h5 { color: #C3A35B; margin-bottom: 6px; font-size: 14px; }
+        .mindmap-tooltip .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+        .mindmap-tooltip .tag { background: rgba(195, 163, 91, 0.2); border: 1px solid rgba(195, 163, 91, 0.4); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; color: #C3A35B; }
+
+        /* Add Node Modal Styles */
+        .mindmap-node-form { display: grid; gap: 12px; }
+        .mindmap-node-form .form-group { margin-bottom: 0; }
+        .mindmap-node-type-select { display: flex; gap: 8px; flex-wrap: wrap; }
+        .mindmap-node-type-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-input); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+        .mindmap-node-type-btn:hover { border-color: var(--blue); color: var(--blue); }
+        .mindmap-node-type-btn.active { background: var(--blue); border-color: var(--blue); color: white; }
+        .mindmap-node-type-btn.center { --btn-color: #C3A35B; }
+        .mindmap-node-type-btn.session { --btn-color: #6495ED; }
+        .mindmap-node-type-btn.tag { --btn-color: #50C878; }
+        .mindmap-node-type-btn.idea { --btn-color: #8B5CF6; }
+        .mindmap-node-type-btn.active.center { background: #C3A35B; border-color: #C3A35B; }
+        .mindmap-node-type-btn.active.session { background: #6495ED; border-color: #6495ED; }
+        .mindmap-node-type-btn.active.tag { background: #50C878; border-color: #50C878; }
+        .mindmap-node-type-btn.active.idea { background: #8B5CF6; border-color: #8B5CF6; }
+
         .color-picker { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
         .color-swatch { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; transition: transform 0.2s; border: 2px solid transparent; }
         .color-swatch:hover { transform: scale(1.15); }
         .color-swatch.active { border-color: white; box-shadow: 0 0 0 2px var(--blue); }
-        .mindmap-outline { font-size: 13px; }
-        .mindmap-outline-item { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 4px; cursor: pointer; margin-bottom: 2px; }
-        .mindmap-outline-item:hover { background: var(--bg-card-hover); }
-        .mindmap-outline-item.active { background: var(--blue-glow); color: var(--blue); }
-        .mindmap-outline-indent { margin-left: 16px; border-left: 1px solid var(--border); padding-left: 8px; }
         .form-group { margin-bottom: 16px; }
         .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
 
@@ -1039,21 +1117,248 @@
         .saved-research-actions { display: flex; gap: 6px; }
 
         /* ═══════════════════════════════════════════════════════════════
-           DATABASE TABLE CARDS
+           DATABASE TABLE CARDS (Enhanced)
         ═══════════════════════════════════════════════════════════════ */
-        .db-tables-container { display: flex; flex-direction: column; gap: 16px; }
-        .db-table-card { background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-        .db-table-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--bg-card-hover); font-size: 13px; font-weight: 600; }
-        .db-table-header i { color: var(--purple); margin-right: 8px; }
-        .db-row-count { font-size: 11px; color: var(--text-muted); font-weight: normal; }
-        .db-columns-list { padding: 8px; }
-        .db-column { display: flex; align-items: center; gap: 12px; padding: 6px 8px; font-size: 12px; border-radius: 4px; }
-        .db-column:hover { background: var(--bg-card); }
-        .db-column-name { flex: 1; font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 6px; }
-        .db-column-type { color: var(--purple); font-family: 'JetBrains Mono', monospace; min-width: 100px; }
-        .db-column-nullable { font-size: 10px; padding: 2px 6px; border-radius: 3px; background: var(--bg-card); color: var(--text-muted); }
+        .db-tables-container { display: flex; flex-direction: column; gap: 16px; max-height: 600px; overflow-y: auto; padding-right: 8px; }
+        .db-table-card { background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: all 0.2s; }
+        .db-table-card:hover { border-color: var(--border-blue); box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1); }
+        .db-table-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: linear-gradient(135deg, var(--bg-card-hover), var(--bg-card)); font-size: 14px; font-weight: 600; border-bottom: 1px solid var(--border); }
+        .db-table-header i { color: var(--purple); margin-right: 10px; font-size: 14px; }
+        .db-row-count { font-size: 11px; color: var(--green); font-weight: 500; padding: 3px 10px; background: rgba(34, 197, 94, 0.1); border-radius: 12px; }
+        .db-table-stats { display: flex; gap: 12px; margin-top: 8px; font-size: 10px; color: var(--text-muted); }
+        .db-stat { display: flex; align-items: center; gap: 4px; }
+        .db-stat i { font-size: 10px; }
+        .db-columns-list { padding: 12px 16px; }
+        .db-column { display: flex; align-items: center; gap: 14px; padding: 8px 12px; font-size: 12px; border-radius: 6px; border-left: 2px solid transparent; transition: all 0.15s; }
+        .db-column:hover { background: var(--bg-card); border-left-color: var(--blue); }
+        .db-column-name { flex: 1; font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 8px; color: var(--text); }
+        .db-column-name i { font-size: 11px; }
+        .db-column-type { color: var(--purple); font-family: 'JetBrains Mono', monospace; min-width: 120px; font-size: 11px; padding: 3px 8px; background: rgba(168, 85, 247, 0.1); border-radius: 4px; text-align: center; }
+        .db-column-nullable { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 500; }
+        .db-column-nullable.not-null { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .db-column-nullable.nullable { background: rgba(34, 197, 94, 0.1); color: var(--green); }
         .db-actions { display: flex; gap: 6px; }
         .db-schema-placeholder { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+
+        /* ═══════════════════════════════════════════════════════════════
+           EMBY MEDIA CARDS
+        ═══════════════════════════════════════════════════════════════ */
+        /* Enhanced Media Dashboard Layout */
+        .media-dashboard { display: grid; grid-template-columns: 260px 1fr; height: calc(100vh - 140px); gap: 0; background: var(--bg-card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+
+        /* Media Sidebar */
+        .media-sidebar { background: linear-gradient(180deg, #0f1419 0%, #151b26 100%); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+        .media-sidebar-header { padding: 16px; border-bottom: 1px solid var(--border); background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); }
+        .media-logo { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; }
+        .media-connection-status { display: flex; align-items: center; gap: 8px; padding: 10px 16px; font-size: 12px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+        .connection-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
+        .connection-dot.connected { background: var(--success); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* Media Config Section */
+        .media-config-section { border-bottom: 1px solid var(--border); }
+        .media-config-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; cursor: pointer; font-size: 12px; color: var(--text-secondary); transition: all 0.2s; }
+        .media-config-header:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+        .media-config-body { padding: 12px 16px; display: none; background: rgba(0, 0, 0, 0.2); }
+        .media-config-body.open { display: block; }
+        .media-config-body label { display: block; font-size: 10px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .media-config-body .input { font-size: 12px; padding: 8px 10px; }
+
+        /* Media Warning */
+        .media-warning { display: flex; flex-direction: column; gap: 8px; padding: 12px; margin: 12px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; font-size: 11px; color: #f59e0b; }
+        .media-warning i { font-size: 14px; }
+
+        /* Media Navigation */
+        .media-nav { flex: 1; padding: 12px 8px; overflow-y: auto; }
+        .media-nav-section { margin-bottom: 20px; }
+        .media-nav-title { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); padding: 8px 12px 6px; }
+        .media-nav-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; background: none; border: none; color: var(--text-secondary); cursor: pointer; border-radius: 8px; transition: all 0.2s; text-align: left; font-size: 13px; position: relative; }
+        .media-nav-item:hover { background: var(--bg-card-hover); color: var(--text-primary); transform: translateX(4px); }
+        .media-nav-item.active { background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%); color: var(--blue); }
+        .media-nav-item.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--blue); border-radius: 0 3px 3px 0; }
+        .media-nav-item.disabled { opacity: 0.5; cursor: default; }
+        .media-nav-item.disabled:hover { background: none; transform: none; }
+        .media-nav-item i { width: 20px; text-align: center; }
+
+        /* Media Server Info */
+        .media-server-info { padding: 12px 16px; border-top: 1px solid var(--border); background: rgba(0, 0, 0, 0.2); }
+        .media-server-stat { display: flex; justify-content: space-between; font-size: 11px; }
+        .stat-label { color: var(--text-muted); }
+        .stat-value { color: var(--text-primary); font-weight: 500; }
+
+        /* Media Main Content */
+        .media-main { display: flex; flex-direction: column; overflow: hidden; background: linear-gradient(135deg, #0a0f14 0%, #101820 100%); }
+        .media-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: rgba(0, 0, 0, 0.3); border-bottom: 1px solid var(--border); }
+        .media-search-bar { display: flex; align-items: center; gap: 10px; flex: 1; max-width: 400px; padding: 10px 16px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; transition: all 0.2s; }
+        .media-search-bar:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .media-search-bar i { color: var(--text-muted); }
+        .media-search-bar input { flex: 1; background: none; border: none; color: var(--text-primary); font-size: 14px; outline: none; }
+        .media-header-actions { display: flex; gap: 10px; align-items: center; }
+        .media-view-toggle { display: flex; gap: 4px; padding: 4px; background: var(--bg-input); border-radius: 6px; }
+        .media-view-toggle .btn.active { background: var(--blue); color: white; }
+
+        /* Media Views */
+        .media-views { flex: 1; overflow-y: auto; padding: 20px; }
+        .media-view { display: none; height: 100%; }
+        .media-view.active { display: block; }
+        .media-content-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
+        .media-content-grid.list-view { grid-template-columns: 1fr; }
+        .media-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px; text-align: center; color: var(--text-muted); grid-column: 1 / -1; }
+        .media-placeholder i { font-size: 64px; margin-bottom: 20px; opacity: 0.3; }
+        .media-placeholder h3 { font-size: 20px; margin-bottom: 8px; color: var(--text-primary); }
+        .media-placeholder p { margin-bottom: 20px; }
+
+        /* Media Player Container */
+        .media-player-container { display: flex; flex-direction: column; height: 100%; background: #000; border-radius: 12px; overflow: hidden; }
+        .player-info-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(0, 0, 0, 0.8); }
+        .player-info-bar span { font-size: 14px; font-weight: 500; }
+        .player-controls-mini { display: flex; gap: 8px; }
+        .player-wrapper { flex: 1; position: relative; background: #000; }
+        .player-wrapper video { width: 100%; height: 100%; }
+        .player-details { padding: 20px; background: var(--bg-card); }
+        .player-details h3 { margin-bottom: 8px; }
+        .player-details p { color: var(--text-muted); font-size: 14px; }
+
+        /* Media Status Bar */
+        .media-status-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 10px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; font-size: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); z-index: 100; }
+
+        /* Emby Media Cards */
+        .emby-media-card { cursor: pointer; transition: all 0.2s; border-radius: 12px; overflow: hidden; background: var(--bg-input); border: 1px solid transparent; }
+        .emby-media-card:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4); border-color: var(--blue); }
+        .emby-media-card.list-view { display: flex; align-items: center; gap: 16px; padding: 12px; border-radius: 8px; }
+        .emby-media-card.list-view .emby-media-poster { width: 60px; height: 90px; flex-shrink: 0; border-radius: 6px; }
+        .emby-media-poster { position: relative; aspect-ratio: 2/3; background: var(--bg-card); border-radius: 8px 8px 0 0; overflow: hidden; }
+        .emby-media-poster img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+        .emby-media-card:hover .emby-media-poster img { transform: scale(1.05); }
+        .emby-media-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--bg-card), var(--bg-input)); color: var(--text-muted); font-size: 28px; }
+        .emby-play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.8) 100%); opacity: 0; transition: opacity 0.3s; }
+        .emby-media-card:hover .emby-play-overlay { opacity: 1; }
+        .emby-play-overlay i { font-size: 48px; color: white; text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); transform: scale(0.8); transition: transform 0.3s; }
+        .emby-media-card:hover .emby-play-overlay i { transform: scale(1); }
+        .emby-runtime { position: absolute; bottom: 8px; right: 8px; background: rgba(0, 0, 0, 0.85); color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+        .emby-media-info { padding: 12px; }
+        .emby-media-title { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 6px; }
+        .emby-media-meta { display: flex; gap: 8px; font-size: 11px; color: var(--text-muted); }
+        .emby-media-type { padding: 2px 8px; background: var(--bg-card); border-radius: 4px; font-weight: 500; }
+
+        /* ═══════════════════════════════════════════════════════════════
+           NETFLIX-STYLE DASHBOARD
+        ═══════════════════════════════════════════════════════════════ */
+        .netflix-dashboard { display: grid; grid-template-columns: 200px 1fr 280px; height: calc(100vh - 140px); background: #0B0B0B; border-radius: 12px; overflow: hidden; }
+
+        /* Netflix Sidebar */
+        .netflix-sidebar { background: #0B0B0B; padding: 20px 16px; display: flex; flex-direction: column; border-right: 1px solid #1a1a1a; }
+        .netflix-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 32px; }
+        .netflix-logo i { font-size: 28px; color: #3b82f6; }
+        .netflix-logo span { font-size: 20px; font-weight: 700; color: #3b82f6; }
+
+        .netflix-nav { flex: 1; }
+        .netflix-nav-section { margin-bottom: 24px; }
+        .netflix-nav-title { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; padding: 0 12px; margin-bottom: 12px; }
+        .netflix-nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; color: #9ca3af; text-decoration: none; border-radius: 8px; transition: all 0.2s; cursor: pointer; }
+        .netflix-nav-item:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .netflix-nav-item.active { color: #3b82f6; background: rgba(59,130,246,0.1); }
+        .netflix-nav-item i { width: 20px; }
+
+        .netflix-connection { display: flex; align-items: center; gap: 8px; padding: 12px; background: rgba(34,197,94,0.1); border-radius: 8px; font-size: 12px; color: #22c55e; }
+        .netflix-connection .connection-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: pulse 2s infinite; }
+
+        /* Netflix Main Content */
+        .netflix-main { display: flex; flex-direction: column; overflow-y: auto; background: linear-gradient(180deg, #0B0B0B 0%, #111827 100%); }
+
+        .netflix-topbar { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; }
+        .netflix-tabs { display: flex; gap: 24px; }
+        .netflix-tab { background: none; border: none; color: #9ca3af; font-size: 14px; font-weight: 500; cursor: pointer; padding: 8px 0; position: relative; transition: color 0.2s; }
+        .netflix-tab:hover { color: #fff; }
+        .netflix-tab.active { color: #fff; }
+        .netflix-tab.active::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: #3b82f6; }
+
+        .netflix-topbar-actions { display: flex; align-items: center; gap: 16px; }
+        .netflix-search { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 8px; padding: 8px 12px; }
+        .netflix-search i { color: #6b7280; }
+        .netflix-search input { background: none; border: none; color: #fff; font-size: 14px; width: 200px; outline: none; }
+        .netflix-icon-btn { background: none; border: none; color: #9ca3af; font-size: 18px; cursor: pointer; transition: color 0.2s; }
+        .netflix-icon-btn:hover { color: #fff; }
+        .netflix-user { width: 32px; height: 32px; background: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
+
+        /* Netflix Hero */
+        .netflix-hero { position: relative; height: 400px; margin: 0 24px 24px; border-radius: 16px; overflow: hidden; background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); }
+        .netflix-hero-bg { position: absolute; inset: 0; background-size: cover; background-position: center; }
+        .netflix-hero-gradient { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%); }
+        .netflix-hero-content { position: absolute; bottom: 40px; left: 40px; max-width: 500px; }
+        .netflix-hero-content h1 { font-size: 48px; font-weight: 700; color: #fff; margin-bottom: 8px; text-shadow: 0 2px 20px rgba(0,0,0,0.5); }
+        .netflix-hero-content p { color: #d1d5db; font-size: 16px; line-height: 1.6; margin-bottom: 16px; }
+        .netflix-hero-meta { display: flex; gap: 16px; margin-bottom: 20px; }
+        .netflix-hero-meta span { font-size: 14px; color: #9ca3af; }
+        .netflix-rating { color: #fbbf24 !important; }
+        .netflix-rating i { margin-right: 4px; }
+        .netflix-hero-actions { display: flex; gap: 12px; }
+        .netflix-btn-play { display: flex; align-items: center; gap: 8px; padding: 12px 32px; background: #3b82f6; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .netflix-btn-play:hover { background: #2563eb; transform: scale(1.02); }
+        .netflix-btn-add { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: #fff; font-size: 18px; cursor: pointer; transition: all 0.2s; }
+        .netflix-btn-add:hover { background: rgba(255,255,255,0.2); }
+
+        /* Netflix Content Rows */
+        .netflix-content { padding: 0 24px 24px; }
+        .netflix-row { margin-bottom: 32px; }
+        .netflix-row-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .netflix-row-header h2 { font-size: 20px; font-weight: 600; color: #fff; }
+        .netflix-row-nav { display: flex; gap: 8px; }
+        .netflix-row-nav button { width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: none; border-radius: 50%; color: #fff; cursor: pointer; transition: all 0.2s; }
+        .netflix-row-nav button:hover { background: rgba(255,255,255,0.2); }
+        .netflix-row-content { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 8px; scroll-behavior: smooth; }
+        .netflix-row-content::-webkit-scrollbar { height: 4px; }
+        .netflix-row-content::-webkit-scrollbar-track { background: #1a1a1a; border-radius: 2px; }
+        .netflix-row-content::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 2px; }
+
+        /* Netflix Media Cards */
+        .netflix-card { flex: 0 0 180px; cursor: pointer; transition: all 0.3s; }
+        .netflix-card:hover { transform: scale(1.05); }
+        .netflix-card-poster { position: relative; aspect-ratio: 2/3; background: #1f2937; border-radius: 12px; overflow: hidden; margin-bottom: 8px; }
+        .netflix-card-poster img { width: 100%; height: 100%; object-fit: cover; }
+        .netflix-card-poster .poster-placeholder { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); }
+        .netflix-card-poster .poster-placeholder i { font-size: 48px; color: #3b82f6; opacity: 0.5; }
+        .netflix-card-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0); display: flex; align-items: center; justify-content: center; transition: background 0.3s; }
+        .netflix-card:hover .netflix-card-overlay { background: rgba(0,0,0,0.4); }
+        .netflix-card-overlay i { font-size: 40px; color: #fff; opacity: 0; transform: scale(0.8); transition: all 0.3s; }
+        .netflix-card:hover .netflix-card-overlay i { opacity: 1; transform: scale(1); }
+        .netflix-card-progress { position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: #374151; }
+        .netflix-card-progress-bar { height: 100%; background: #3b82f6; }
+        .netflix-card-info { }
+        .netflix-card-title { font-size: 13px; font-weight: 500; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .netflix-card-meta { display: flex; align-items: center; gap: 8px; }
+        .netflix-card-rating { background: #22d3ee; color: #000; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+
+        /* Netflix Continue Watching Cards (Horizontal) */
+        .netflix-card-wide { flex: 0 0 280px; }
+        .netflix-card-wide .netflix-card-poster { aspect-ratio: 16/9; }
+
+        /* Netflix Right Sidebar */
+        .netflix-right-sidebar { background: #0B0B0B; padding: 20px; border-left: 1px solid #1a1a1a; overflow-y: auto; }
+        .netflix-sidebar-section { margin-bottom: 32px; }
+        .netflix-sidebar-section h3 { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 16px; }
+        .netflix-sidebar-section h3 i { font-size: 12px; color: #6b7280; }
+
+        .netflix-list { display: flex; flex-direction: column; gap: 12px; }
+        .netflix-list-item { display: flex; gap: 12px; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s; }
+        .netflix-list-item:hover { background: rgba(255,255,255,0.05); }
+        .netflix-list-item img { width: 48px; height: 64px; object-fit: cover; border-radius: 6px; background: #1f2937; }
+        .netflix-list-item .placeholder-img { width: 48px; height: 64px; background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+        .netflix-list-item .placeholder-img i { color: #3b82f6; opacity: 0.5; }
+        .netflix-list-item-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .netflix-list-item-title { font-size: 13px; font-weight: 500; color: #fff; margin-bottom: 2px; }
+        .netflix-list-item-genre { font-size: 11px; color: #6b7280; }
+        .netflix-list-item-rating { background: #22d3ee; color: #000; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; align-self: flex-start; margin-top: 4px; }
+
+        /* Netflix Player Modal */
+        .netflix-player-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .netflix-player-container { width: 90%; max-width: 1200px; background: #0B0B0B; border-radius: 16px; overflow: hidden; position: relative; }
+        .netflix-player-close { position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.5); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; font-size: 18px; cursor: pointer; z-index: 10; transition: background 0.2s; }
+        .netflix-player-close:hover { background: rgba(0,0,0,0.8); }
+        .netflix-player-container video { width: 100%; aspect-ratio: 16/9; background: #000; }
+        .netflix-player-info { padding: 20px; }
+        .netflix-player-info h3 { font-size: 20px; color: #fff; margin-bottom: 8px; }
+        .netflix-player-info p { color: #9ca3af; font-size: 14px; }
 
         /* ═══════════════════════════════════════════════════════════════
            CUSTOMER PROFILE DASHBOARD
@@ -1402,7 +1707,7 @@
                         <div class="card-header"><span class="card-title">Quick Actions</span></div>
                         <div class="card-body">
                             <button class="btn btn-primary" style="width: 100%; margin-bottom: 8px;" onclick="showModal('newCustomer')"><i class="fas fa-user-plus"></i> Add Customer</button>
-                            <button class="btn btn-secondary" style="width: 100%; margin-bottom: 8px;" onclick="showModal('newInvoice')"><i class="fas fa-file-invoice"></i> New Invoice</button>
+                            <button class="btn btn-secondary" style="width: 100%; margin-bottom: 8px;" onclick="switchTab('billing')"><i class="fas fa-file-invoice"></i> Billing & Invoices</button>
                             <button class="btn btn-secondary" style="width: 100%; margin-bottom: 8px;" onclick="switchTab('email')"><i class="fas fa-envelope"></i> Check Email</button>
                             <button class="btn btn-secondary" style="width: 100%;" onclick="switchTab('analytics')"><i class="fas fa-chart-line"></i> View Analytics</button>
                         </div>
@@ -1508,53 +1813,73 @@
                         </div>
                     </div>
 
-                    <!-- Mind Map Panel -->
+                    <!-- Mind Map Panel (D3.js Force-Directed) -->
                     <div class="visual-panel" id="visual-mindmap">
                         <div class="mindmap-container">
                             <div class="mindmap-toolbar">
-                                <button class="btn btn-primary btn-sm" onclick="addMindMapNode()"><i class="fas fa-plus"></i> Add Node</button>
-                                <button class="btn btn-sm" onclick="addMindMapChild()"><i class="fas fa-level-down-alt"></i> Add Child</button>
-                                <button class="btn btn-sm" onclick="deleteMindMapNode()"><i class="fas fa-trash"></i> Delete</button>
+                                <button class="btn btn-sm" onclick="showAddMindMapNodeModal()"><i class="fas fa-plus"></i> Add Node</button>
+                                <button class="btn btn-sm" onclick="connectMindMapNodes()"><i class="fas fa-link"></i> Connect</button>
+                                <button class="btn btn-sm" onclick="deleteMindMapNode()"><i class="fas fa-trash"></i> Delete Selected</button>
                                 <div style="flex: 1;"></div>
-                                <button class="btn btn-sm" onclick="zoomMindMap(1.2)"><i class="fas fa-search-plus"></i></button>
-                                <button class="btn btn-sm" onclick="zoomMindMap(0.8)"><i class="fas fa-search-minus"></i></button>
-                                <button class="btn btn-sm" onclick="centerMindMap()"><i class="fas fa-crosshairs"></i></button>
-                                <button class="btn btn-sm" onclick="exportMindMap()"><i class="fas fa-download"></i> Export</button>
+                                <span style="color: #888; font-size: 12px;">Drag to move • Scroll to zoom • Click to select</span>
+                                <div style="flex: 1;"></div>
+                                <button class="btn btn-sm" onclick="loadMindMapPreset('project')"><i class="fas fa-project-diagram"></i> Project Template</button>
+                                <button class="btn btn-sm" onclick="loadMindMapPreset('brainstorm')"><i class="fas fa-lightbulb"></i> Brainstorm</button>
+                                <button class="btn btn-sm" onclick="saveMindMap()"><i class="fas fa-save"></i> Save</button>
+                                <button class="btn btn-sm" onclick="exportMindMapPNG()"><i class="fas fa-image"></i> Export</button>
                             </div>
                             <div class="mindmap-canvas" id="mindmapCanvas">
-                                <div class="mindmap-node root" id="mindmap-root" data-id="root" onclick="selectMindMapNode('root')">
-                                    <div class="mindmap-node-content" contenteditable="true">Central Idea</div>
+                                <!-- D3.js SVG will be rendered here -->
+                            </div>
+
+                            <!-- Floating Legend -->
+                            <div class="mindmap-legend">
+                                <h4><i class="fas fa-info-circle"></i> Legend</h4>
+                                <div class="mindmap-legend-item">
+                                    <div class="mindmap-legend-color" style="background: #C3A35B;"></div>
+                                    <span>Central Hub</span>
+                                </div>
+                                <div class="mindmap-legend-item">
+                                    <div class="mindmap-legend-color" style="background: #6495ED;"></div>
+                                    <span>Ideas / Sessions</span>
+                                </div>
+                                <div class="mindmap-legend-item">
+                                    <div class="mindmap-legend-color" style="background: #50C878;"></div>
+                                    <span>Tags / Categories</span>
+                                </div>
+                                <div class="mindmap-legend-item">
+                                    <div class="mindmap-legend-color" style="background: #8B5CF6;"></div>
+                                    <span>Sub-Ideas</span>
                                 </div>
                             </div>
-                            <div class="mindmap-sidebar">
-                                <h4>Node Properties</h4>
-                                <div id="mindmapProperties">
-                                    <div class="form-group">
-                                        <label>Color</label>
-                                        <div class="color-picker">
-                                            <div class="color-swatch" style="background: #3B82F6;" onclick="setMindMapNodeColor('#3B82F6')"></div>
-                                            <div class="color-swatch" style="background: #8B5CF6;" onclick="setMindMapNodeColor('#8B5CF6')"></div>
-                                            <div class="color-swatch" style="background: #10B981;" onclick="setMindMapNodeColor('#10B981')"></div>
-                                            <div class="color-swatch" style="background: #F59E0B;" onclick="setMindMapNodeColor('#F59E0B')"></div>
-                                            <div class="color-swatch" style="background: #EF4444;" onclick="setMindMapNodeColor('#EF4444')"></div>
-                                            <div class="color-swatch" style="background: #EC4899;" onclick="setMindMapNodeColor('#EC4899')"></div>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Shape</label>
-                                        <select class="input" id="mindmapNodeShape" onchange="setMindMapNodeShape(this.value)">
-                                            <option value="rounded">Rounded</option>
-                                            <option value="rectangle">Rectangle</option>
-                                            <option value="pill">Pill</option>
-                                            <option value="diamond">Diamond</option>
-                                        </select>
-                                    </div>
+
+                            <!-- Floating Stats -->
+                            <div class="mindmap-stats">
+                                <h4><i class="fas fa-chart-bar"></i> Statistics</h4>
+                                <div class="mindmap-stat-item">
+                                    <span>Nodes</span>
+                                    <span class="mindmap-stat-value" id="mindmap-node-count">0</span>
                                 </div>
-                                <h4 style="margin-top: 16px;">Outline</h4>
-                                <div class="mindmap-outline" id="mindmapOutline">
-                                    <!-- Tree outline rendered here -->
+                                <div class="mindmap-stat-item">
+                                    <span>Connections</span>
+                                    <span class="mindmap-stat-value" id="mindmap-link-count">0</span>
+                                </div>
+                                <div class="mindmap-stat-item">
+                                    <span>Categories</span>
+                                    <span class="mindmap-stat-value" id="mindmap-tag-count">0</span>
                                 </div>
                             </div>
+
+                            <!-- Floating Controls -->
+                            <div class="mindmap-controls">
+                                <button onclick="resetMindMapZoom()"><i class="fas fa-crosshairs"></i> Reset View</button>
+                                <button onclick="toggleMindMapLabels()" id="toggleLabelsBtn"><i class="fas fa-tags"></i> Toggle Labels</button>
+                                <button onclick="highlightMindMapShared()" id="highlightSharedBtn"><i class="fas fa-share-alt"></i> Show Shared</button>
+                                <button onclick="autoArrangeMindMap()"><i class="fas fa-magic"></i> Auto Arrange</button>
+                            </div>
+
+                            <!-- Tooltip -->
+                            <div class="mindmap-tooltip" id="mindmapTooltip"></div>
                         </div>
                     </div>
 
@@ -1981,7 +2306,6 @@
                         <button class="system-tab" onclick="showSystemPanel('cleaner')"><i class="fas fa-broom"></i> Cleaner</button>
                         <button class="system-tab" onclick="showSystemPanel('analytics')"><i class="fas fa-chart-line"></i> Analytics</button>
                         <button class="system-tab" onclick="showSystemPanel('databases')"><i class="fas fa-database"></i> Databases</button>
-                        <button class="system-tab" onclick="showSystemPanel('notes')"><i class="fas fa-sticky-note"></i> Notes</button>
                         <button class="system-tab" onclick="showSystemPanel('search')"><i class="fas fa-search"></i> Search</button>
                     </div>
 
@@ -2100,22 +2424,88 @@
 
                     <!-- Files Panel -->
                     <div class="system-panel" id="panel-files">
-                        <div class="card">
-                            <div class="card-header">
-                                <span class="card-title">File Explorer</span>
-                                <div style="display: flex; gap: 8px;">
-                                    <button class="btn btn-sm btn-secondary" onclick="goUpDirectory()"><i class="fas fa-level-up-alt"></i></button>
-                                    <button class="btn btn-sm btn-secondary" onclick="refreshFiles()"><i class="fas fa-sync"></i></button>
+                        <div style="display: grid; grid-template-columns: 200px 1fr; gap: 16px;">
+                            <!-- Drive Sidebar -->
+                            <div class="card">
+                                <div class="card-header"><span class="card-title">Drives</span></div>
+                                <div class="card-body" style="padding: 8px;">
+                                    <div class="drive-list" id="driveList">
+                                        <div class="drive-item active" onclick="selectDrive('C:')" data-drive="C:">
+                                            <i class="fas fa-hdd" style="color: var(--blue);"></i>
+                                            <div class="drive-info">
+                                                <div class="drive-name">Local Disk (C:)</div>
+                                                <div class="drive-space">118 GB free of 237 GB</div>
+                                                <div class="drive-bar"><div class="drive-bar-fill" style="width: 50%;"></div></div>
+                                            </div>
+                                        </div>
+                                        <div class="drive-item" onclick="selectDrive('D:')" data-drive="D:">
+                                            <i class="fas fa-hdd" style="color: var(--purple);"></i>
+                                            <div class="drive-info">
+                                                <div class="drive-name">Data (D:)</div>
+                                                <div class="drive-space">1.2 TB free of 2 TB</div>
+                                                <div class="drive-bar"><div class="drive-bar-fill" style="width: 40%; background: var(--purple);"></div></div>
+                                            </div>
+                                        </div>
+                                        <div class="drive-item" onclick="selectDrive('E:')" data-drive="E:">
+                                            <i class="fas fa-hdd" style="color: var(--green);"></i>
+                                            <div class="drive-info">
+                                                <div class="drive-name">Storage (E:)</div>
+                                                <div class="drive-space">856 GB free of 1 TB</div>
+                                                <div class="drive-bar"><div class="drive-bar-fill" style="width: 15%; background: var(--green);"></div></div>
+                                            </div>
+                                        </div>
+                                        <div class="drive-item" onclick="selectDrive('L:')" data-drive="L:">
+                                            <i class="fas fa-folder-open" style="color: var(--warning);"></i>
+                                            <div class="drive-info">
+                                                <div class="drive-name">Projects (L:)</div>
+                                                <div class="drive-space">Network Drive</div>
+                                                <div class="drive-bar"><div class="drive-bar-fill" style="width: 30%; background: var(--warning);"></div></div>
+                                            </div>
+                                        </div>
+                                        <div class="drive-item" onclick="selectDrive('Y:')" data-drive="Y:">
+                                            <i class="fas fa-network-wired" style="color: var(--orange);"></i>
+                                            <div class="drive-info">
+                                                <div class="drive-name">Console Learn (Y:)</div>
+                                                <div class="drive-space">Network Drive</div>
+                                                <div class="drive-bar"><div class="drive-bar-fill" style="width: 45%; background: var(--orange);"></div></div>
+                                            </div>
+                                        </div>
+                                        <div class="drive-item" onclick="selectDrive('Z:')" data-drive="Z:">
+                                            <i class="fas fa-globe" style="color: var(--cyan);"></i>
+                                            <div class="drive-info">
+                                                <div class="drive-name">Public HTML (Z:)</div>
+                                                <div class="drive-space">Web Server</div>
+                                                <div class="drive-bar"><div class="drive-bar-fill" style="width: 25%; background: var(--cyan);"></div></div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="card-body">
-                                <div style="margin-bottom: 12px; font-size: 13px; color: var(--text-muted);" id="currentPath">C:\Users\</div>
-                                <div class="file-tree" id="fileTree">
-                                    <div class="file-tree-item"><i class="fas fa-folder" style="color: var(--warning);"></i> Documents</div>
-                                    <div class="file-tree-item"><i class="fas fa-folder" style="color: var(--warning);"></i> Downloads</div>
-                                    <div class="file-tree-item"><i class="fas fa-folder" style="color: var(--warning);"></i> Desktop</div>
-                                    <div class="file-tree-item"><i class="fas fa-folder" style="color: var(--warning);"></i> Pictures</div>
-                                    <div class="file-tree-item"><i class="fas fa-file" style="color: var(--text-muted);"></i> readme.txt</div>
+                            <!-- File Browser -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <span class="card-title">File Explorer</span>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button class="btn btn-sm btn-secondary" onclick="goUpDirectory()"><i class="fas fa-level-up-alt"></i></button>
+                                        <button class="btn btn-sm btn-secondary" onclick="refreshFiles()"><i class="fas fa-sync"></i></button>
+                                        <button class="btn btn-sm btn-secondary" onclick="toggleFileView()"><i class="fas fa-th"></i></button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="file-breadcrumb" id="currentPath">
+                                        <span class="breadcrumb-item" onclick="navigateTo('C:')">C:</span>
+                                        <span class="breadcrumb-sep">/</span>
+                                        <span class="breadcrumb-item" onclick="navigateTo('C:\\Users')">Users</span>
+                                    </div>
+                                    <div class="file-tree" id="fileTree">
+                                        <div class="file-tree-item" onclick="openFolder('Documents')"><i class="fas fa-folder" style="color: var(--warning);"></i> Documents</div>
+                                        <div class="file-tree-item" onclick="openFolder('Downloads')"><i class="fas fa-folder" style="color: var(--warning);"></i> Downloads</div>
+                                        <div class="file-tree-item" onclick="openFolder('Desktop')"><i class="fas fa-folder" style="color: var(--warning);"></i> Desktop</div>
+                                        <div class="file-tree-item" onclick="openFolder('Pictures')"><i class="fas fa-folder" style="color: var(--warning);"></i> Pictures</div>
+                                        <div class="file-tree-item" onclick="openFolder('Videos')"><i class="fas fa-folder" style="color: var(--warning);"></i> Videos</div>
+                                        <div class="file-tree-item" onclick="openFolder('.claude')"><i class="fas fa-folder" style="color: var(--purple);"></i> .claude</div>
+                                        <div class="file-tree-item"><i class="fas fa-file-alt" style="color: var(--text-muted);"></i> readme.txt <span style="color: var(--text-muted); font-size: 10px;">1.2 KB</span></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2225,26 +2615,6 @@
                         </div>
                     </div>
 
-                    <!-- Notes Panel -->
-                    <div class="system-panel" id="panel-notes">
-                        <div class="card">
-                            <div class="card-header"><span class="card-title">Markdown Notes</span><button class="btn btn-sm btn-primary" onclick="saveNotes()"><i class="fas fa-save"></i> Save</button></div>
-                            <div class="card-body">
-                                <div class="notes-editor">
-                                    <textarea class="notes-input" id="notesInput" placeholder="# Write your notes here...
-
-Use **bold** and *italic* formatting.
-
-- List item 1
-- List item 2
-
-```code blocks```"></textarea>
-                                    <div class="notes-preview" id="notesPreview"><p style="color: var(--text-muted);">Preview will appear here...</p></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Search Panel -->
                     <div class="system-panel" id="panel-search">
                         <div class="card">
@@ -2266,66 +2636,204 @@ Use **bold** and *italic* formatting.
                 </div>
             </div>
 
-            <!-- TAB: MEDIA -->
+            <!-- TAB: MEDIA (Netflix-Style Dashboard) -->
             <div class="tab-content" id="tab-media">
-                <div style="display: grid; grid-template-columns: 300px 1fr; gap: 20px;">
-                    <!-- Emby Configuration Panel -->
-                    <div class="card">
-                        <div class="card-header"><span class="card-title"><i class="fas fa-server"></i> Emby Configuration</span></div>
-                        <div class="card-body">
-                            <!-- Mixed Content Warning -->
-                            <div id="embyMixedContentWarning" style="background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 16px; display: none;">
-                                <div style="display: flex; align-items: center; gap: 8px; color: #f59e0b; font-weight: 600; margin-bottom: 6px;">
-                                    <i class="fas fa-exclamation-triangle"></i> Mixed Content Notice
+                <div class="netflix-dashboard">
+                    <!-- Netflix Sidebar -->
+                    <div class="netflix-sidebar">
+                        <div class="netflix-logo">
+                            <i class="fas fa-play-circle"></i>
+                            <span>StreamHub</span>
+                        </div>
+
+                        <nav class="netflix-nav">
+                            <div class="netflix-nav-section">
+                                <span class="netflix-nav-title">MENU</span>
+                                <a href="#" class="netflix-nav-item active" onclick="switchNetflixView('home')">
+                                    <i class="fas fa-home"></i><span>Home</span>
+                                </a>
+                                <a href="#" class="netflix-nav-item" onclick="switchNetflixView('movies')">
+                                    <i class="fas fa-film"></i><span>Movies</span>
+                                </a>
+                                <a href="#" class="netflix-nav-item" onclick="switchNetflixView('tvshows')">
+                                    <i class="fas fa-tv"></i><span>TV Shows</span>
+                                </a>
+                                <a href="#" class="netflix-nav-item" onclick="switchNetflixView('watchlist')">
+                                    <i class="fas fa-clock"></i><span>Watch List</span>
+                                </a>
+                            </div>
+
+                            <div class="netflix-nav-section">
+                                <span class="netflix-nav-title">LIBRARY</span>
+                                <a href="#" class="netflix-nav-item" onclick="loadNetflixRecent()">
+                                    <i class="fas fa-history"></i><span>Recent</span>
+                                </a>
+                                <a href="#" class="netflix-nav-item" onclick="loadNetflixFavorites()">
+                                    <i class="fas fa-heart"></i><span>Favorites</span>
+                                </a>
+                                <a href="#" class="netflix-nav-item" onclick="document.getElementById('cloudMediaFile').click()">
+                                    <i class="fas fa-upload"></i><span>Upload</span>
+                                </a>
+                            </div>
+
+                            <div class="netflix-nav-section">
+                                <span class="netflix-nav-title">SETTINGS</span>
+                                <a href="#" class="netflix-nav-item" onclick="toggleNetflixSettings()">
+                                    <i class="fas fa-cog"></i><span>Settings</span>
+                                </a>
+                            </div>
+                        </nav>
+
+                        <!-- Hidden file input -->
+                        <input type="file" id="cloudMediaFile" accept="video/*,audio/*" style="display: none;" onchange="uploadCloudMedia(this.files[0])">
+
+                        <!-- Connection Status -->
+                        <div class="netflix-connection" id="embyConnectionStatus">
+                            <div class="connection-dot"></div>
+                            <span>Cloud Connected</span>
+                        </div>
+                    </div>
+
+                    <!-- Netflix Main Content -->
+                    <div class="netflix-main">
+                        <!-- Top Bar -->
+                        <div class="netflix-topbar">
+                            <div class="netflix-tabs">
+                                <button class="netflix-tab active" onclick="filterNetflixContent('all')">All</button>
+                                <button class="netflix-tab" onclick="filterNetflixContent('movies')">Movies</button>
+                                <button class="netflix-tab" onclick="filterNetflixContent('tvshows')">TV Shows</button>
+                                <button class="netflix-tab" onclick="filterNetflixContent('music')">Music</button>
+                            </div>
+                            <div class="netflix-topbar-actions">
+                                <div class="netflix-search">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" placeholder="Search..." id="netflixSearchInput" onkeyup="searchNetflixContent(event)">
                                 </div>
-                                <p style="font-size: 11px; color: var(--text-secondary); margin: 0;">
-                                    Your Emby server uses HTTP but this page is HTTPS. For full media access:
-                                </p>
-                                <div style="margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap;">
-                                    <button class="btn btn-sm" onclick="window.open('http://192.168.0.217:8096/web/index.html', '_blank')">
-                                        <i class="fas fa-external-link-alt"></i> Open Emby Direct
-                                    </button>
-                                    <button class="btn btn-sm" onclick="openLocalDashboard()">
-                                        <i class="fas fa-desktop"></i> Use Local HTTP
-                                    </button>
+                                <button class="netflix-icon-btn"><i class="fas fa-bell"></i></button>
+                                <div class="netflix-user">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hero Section -->
+                        <div class="netflix-hero" id="netflixHero">
+                            <div class="netflix-hero-bg">
+                                <div class="netflix-hero-gradient"></div>
+                            </div>
+                            <div class="netflix-hero-content">
+                                <h1 id="heroTitle">Welcome to StreamHub</h1>
+                                <p id="heroDescription">Your personal media streaming dashboard. Upload videos to get started or connect to your Emby server.</p>
+                                <div class="netflix-hero-meta">
+                                    <span class="netflix-rating"><i class="fas fa-star"></i> Featured</span>
+                                    <span class="netflix-year">2026</span>
+                                    <span class="netflix-genre">Media Center</span>
+                                </div>
+                                <div class="netflix-hero-actions">
+                                    <button class="netflix-btn-play" onclick="playFeaturedMedia()"><i class="fas fa-play"></i> Play</button>
+                                    <button class="netflix-btn-add" onclick="document.getElementById('cloudMediaFile').click()"><i class="fas fa-plus"></i> Upload</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Content Rows -->
+                        <div class="netflix-content" id="netflixContent">
+                            <!-- Continue Watching Row -->
+                            <div class="netflix-row" id="continueWatchingRow">
+                                <div class="netflix-row-header">
+                                    <h2>Continue Watching</h2>
+                                    <div class="netflix-row-nav">
+                                        <button onclick="scrollNetflixRow('continueWatching', -1)"><i class="fas fa-chevron-left"></i></button>
+                                        <button onclick="scrollNetflixRow('continueWatching', 1)"><i class="fas fa-chevron-right"></i></button>
+                                    </div>
+                                </div>
+                                <div class="netflix-row-content" id="continueWatching">
+                                    <!-- Cards will be loaded dynamically -->
                                 </div>
                             </div>
 
-                            <div class="form-group" style="margin-bottom: 16px;">
-                                <label style="display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Server URL (LAN)</label>
-                                <input type="text" class="input" id="embyServerUrl" value="http://192.168.0.217:8096" placeholder="http://192.168.0.217:8096">
+                            <!-- My Library Row -->
+                            <div class="netflix-row">
+                                <div class="netflix-row-header">
+                                    <h2>My Library</h2>
+                                    <div class="netflix-row-nav">
+                                        <button onclick="scrollNetflixRow('myLibrary', -1)"><i class="fas fa-chevron-left"></i></button>
+                                        <button onclick="scrollNetflixRow('myLibrary', 1)"><i class="fas fa-chevron-right"></i></button>
+                                    </div>
+                                </div>
+                                <div class="netflix-row-content" id="myLibrary">
+                                    <!-- Cards will be loaded dynamically -->
+                                </div>
                             </div>
-                            <div class="form-group" style="margin-bottom: 16px;">
-                                <label style="display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">API Key</label>
-                                <select class="input" id="embyApiKeySelect" onchange="selectEmbyApiKey(this.value)">
-                                    <option value="8cf23d5e47174b8bae3b58e5eb3e6718">SA (2/23/2026)</option>
-                                    <option value="92910e6aa7af495ea41b684e70eae1c3">NEW (1/27/2026)</option>
-                                    <option value="0be8b16317334647be12d1302a4728d6">Emby Server DLNA (2/12/2026)</option>
-                                </select>
-                                <input type="text" class="input" id="embyApiKey" value="8cf23d5e47174b8bae3b58e5eb3e6718" style="margin-top: 8px; font-family: monospace; font-size: 11px;">
+
+                            <!-- Recently Added Row -->
+                            <div class="netflix-row">
+                                <div class="netflix-row-header">
+                                    <h2>Recently Added</h2>
+                                    <div class="netflix-row-nav">
+                                        <button onclick="scrollNetflixRow('recentlyAdded', -1)"><i class="fas fa-chevron-left"></i></button>
+                                        <button onclick="scrollNetflixRow('recentlyAdded', 1)"><i class="fas fa-chevron-right"></i></button>
+                                    </div>
+                                </div>
+                                <div class="netflix-row-content" id="recentlyAdded">
+                                    <!-- Cards will be loaded dynamically -->
+                                </div>
                             </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button class="btn btn-primary" onclick="connectEmby()"><i class="fas fa-plug"></i> Connect</button>
-                                <button class="btn btn-secondary" onclick="testEmbyConnection()"><i class="fas fa-check"></i> Test</button>
-                            </div>
-                            <div id="embyStatus" style="margin-top: 12px; padding: 10px; background: var(--bg-input); border-radius: 6px; font-size: 12px; display: none;"></div>
                         </div>
                     </div>
-                    <!-- Media Browser -->
-                    <div class="card">
-                        <div class="card-header">
-                            <span class="card-title"><i class="fas fa-film"></i> Media Library</span>
-                            <div style="display: flex; gap: 8px;">
-                                <button class="btn btn-sm" onclick="refreshEmbyLibrary()"><i class="fas fa-sync"></i></button>
-                                <select class="input" style="width: 150px; padding: 6px 10px;" id="embyLibrarySelect" onchange="loadEmbyLibrary(this.value)">
-                                    <option value="">Select Library</option>
-                                </select>
+
+                    <!-- Right Sidebar (Popular/Favorites) -->
+                    <div class="netflix-right-sidebar">
+                        <div class="netflix-sidebar-section">
+                            <h3>Popular <i class="fas fa-chevron-right"></i></h3>
+                            <div id="popularList" class="netflix-list">
+                                <!-- Popular items loaded dynamically -->
                             </div>
                         </div>
-                        <div class="card-body" id="embyContent" style="min-height: 400px;">
-                            <div style="text-align: center; padding: 60px; color: var(--text-muted);">
-                                <i class="fas fa-tv" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
-                                <p>Connect to Emby to browse media</p>
+                        <div class="netflix-sidebar-section">
+                            <h3>Favorites <i class="fas fa-chevron-right"></i></h3>
+                            <div id="favoritesList" class="netflix-list">
+                                <!-- Favorites loaded dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Player Modal -->
+                <div class="netflix-player-modal" id="netflixPlayerModal" style="display: none;">
+                    <div class="netflix-player-container">
+                        <button class="netflix-player-close" onclick="closeNetflixPlayer()"><i class="fas fa-times"></i></button>
+                        <video id="netflixVideoPlayer" controls autoplay>
+                            <source src="" type="video/mp4">
+                        </video>
+                        <div class="netflix-player-info">
+                            <h3 id="playerTitle">Now Playing</h3>
+                            <p id="playerDescription"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Modal -->
+                <div id="netflixSettingsModal" class="modal" style="display: none;">
+                    <div class="modal-content" style="max-width: 400px;">
+                        <div class="modal-header">
+                            <h3>Media Settings</h3>
+                            <button class="modal-close" onclick="toggleNetflixSettings()"><i class="fas fa-times"></i></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label>Media Source</label>
+                                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                                    <button class="btn btn-primary" id="btnMediaCloud" onclick="setMediaSource('cloud')" style="flex: 1;"><i class="fas fa-cloud"></i> Cloud (R2)</button>
+                                    <button class="btn" id="btnMediaEmby" onclick="setMediaSource('emby')" style="flex: 1;"><i class="fas fa-server"></i> Emby</button>
+                                </div>
+                            </div>
+                            <div class="form-group" id="embySettings" style="display: none; margin-top: 16px;">
+                                <label>Emby Server URL</label>
+                                <input type="text" class="input" id="embyServerUrl" value="https://media.allstarmediapro.com">
+                                <label style="margin-top: 12px;">API Key</label>
+                                <input type="text" class="input" id="embyApiKey" value="8cf23d5e47174b8bae3b58e5eb3e6718">
+                                <button class="btn btn-primary" onclick="connectEmby()" style="margin-top: 12px; width: 100%;"><i class="fas fa-plug"></i> Connect to Emby</button>
                             </div>
                         </div>
                     </div>
@@ -2392,6 +2900,7 @@ Use **bold** and *italic* formatting.
                             <button class="billing-tab" onclick="showBillingPanel('paylink')"><i class="fab fa-paypal"></i> Payment Links</button>
                             <button class="billing-tab" onclick="showBillingPanel('crm')"><i class="fas fa-users"></i> Customers</button>
                             <button class="billing-tab" onclick="showBillingPanel('kanban')"><i class="fas fa-columns"></i> Tasks</button>
+                            <button class="billing-tab" onclick="showBillingPanel('impactiq')" style="background: linear-gradient(135deg, rgba(195, 163, 91, 0.2), rgba(195, 163, 91, 0.1)); border: 1px solid #C3A35B;"><i class="fas fa-star" style="color: #C3A35B;"></i> ImpactIQ CRM</button>
                         </div>
 
                         <div class="billing-panel active" id="billing-preview">
@@ -2508,6 +3017,17 @@ Use **bold** and *italic* formatting.
                                 <!-- Kanban columns rendered here -->
                             </div>
                         </div>
+
+                        <!-- ImpactIQ CRM Panel -->
+                        <div class="billing-panel" id="billing-impactiq">
+                            <div style="height: 100%; display: flex; flex-direction: column;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); margin-bottom: 12px;">
+                                    <h3 style="margin: 0;"><i class="fas fa-star" style="color: #C3A35B;"></i> ImpactIQ CRM - Customer Management</h3>
+                                    <a href="https://impactiqbeta.com" target="_blank" class="btn btn-sm" style="background: linear-gradient(135deg, #C3A35B, #b8943d); color: #000;"><i class="fas fa-external-link-alt"></i> Open Full App</a>
+                                </div>
+                                <iframe src="https://impactiqbeta.com" style="flex: 1; border: none; border-radius: 8px; min-height: 600px; background: var(--bg-input);"></iframe>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Right Panel: Payments & Transactions -->
@@ -2540,52 +3060,78 @@ Use **bold** and *italic* formatting.
                 </div>
             </div>
 
-            <!-- TAB: EMAIL SUITE -->
+            <!-- TAB: EMAIL SUITE (Enhanced) -->
             <div class="tab-content" id="tab-email">
-                <div style="display: grid; grid-template-columns: 1fr 320px; gap: 20px;">
-                    <div class="email-container">
-                        <div class="email-list">
-                            <div class="email-list-header">
-                                <span class="card-title">Inbox</span>
-                                <div style="display: flex; gap: 8px;">
-                                    <button class="btn btn-sm" onclick="openSignModal()"><i class="fas fa-signature"></i></button>
-                                    <button class="btn btn-primary btn-sm" onclick="showModal('composeEmail')"><i class="fas fa-pen"></i> Compose</button>
-                                </div>
+                <div class="email-suite-layout">
+                    <!-- Email Folder Sidebar -->
+                    <div class="email-sidebar">
+                        <button class="btn btn-primary" style="width: 100%; margin-bottom: 16px;" onclick="showModal('composeEmail')">
+                            <i class="fas fa-pen"></i> Compose
+                        </button>
+                        <div class="email-folders">
+                            <div class="email-folder active" data-folder="inbox" onclick="selectEmailFolder('inbox')">
+                                <i class="fas fa-inbox"></i>
+                                <span class="email-folder-name">Inbox</span>
+                                <span class="email-folder-count" id="inboxCount">5</span>
                             </div>
-                            <div class="email-list-items" id="emailListItems"></div>
+                            <div class="email-folder" data-folder="starred" onclick="selectEmailFolder('starred')">
+                                <i class="fas fa-star"></i>
+                                <span class="email-folder-name">Starred</span>
+                                <span class="email-folder-count">2</span>
+                            </div>
+                            <div class="email-folder" data-folder="sent" onclick="selectEmailFolder('sent')">
+                                <i class="fas fa-paper-plane"></i>
+                                <span class="email-folder-name">Sent</span>
+                            </div>
+                            <div class="email-folder" data-folder="drafts" onclick="selectEmailFolder('drafts')">
+                                <i class="fas fa-file-alt"></i>
+                                <span class="email-folder-name">Drafts</span>
+                                <span class="email-folder-count">1</span>
+                            </div>
+                            <div class="email-folder" data-folder="archive" onclick="selectEmailFolder('archive')">
+                                <i class="fas fa-archive"></i>
+                                <span class="email-folder-name">Archive</span>
+                            </div>
+                            <div class="email-folder" data-folder="trash" onclick="selectEmailFolder('trash')">
+                                <i class="fas fa-trash"></i>
+                                <span class="email-folder-name">Trash</span>
+                            </div>
                         </div>
-                        <div class="email-viewer" id="emailViewer">
-                            <div style="text-align: center; padding: 60px; color: var(--text-muted);">
-                                <i class="fas fa-envelope-open" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
-                                <p>Select an email to read</p>
-                            </div>
+                        <div class="email-labels" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
+                            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px; padding: 0 12px;">LABELS</div>
+                            <div class="email-label"><span class="email-label-dot" style="background: var(--danger);"></span> Important</div>
+                            <div class="email-label"><span class="email-label-dot" style="background: var(--warning);"></span> Work</div>
+                            <div class="email-label"><span class="email-label-dot" style="background: var(--green);"></span> Personal</div>
+                            <div class="email-label"><span class="email-label-dot" style="background: var(--blue);"></span> Clients</div>
                         </div>
                     </div>
-                    <!-- E-Signature Panel -->
-                    <div class="esign-container">
-                        <div class="esign-header">
-                            <h3><i class="fas fa-signature"></i> E-Signature</h3>
-                            <p>Sign documents and send for signature</p>
-                        </div>
-                        <div class="esign-canvas-wrapper">
-                            <canvas id="signatureCanvasEmail" class="esign-canvas" width="280" height="150"></canvas>
-                        </div>
-                        <div class="esign-actions">
-                            <button class="btn btn-sm btn-secondary" onclick="clearEmailSignature()"><i class="fas fa-eraser"></i> Clear</button>
-                            <button class="btn btn-sm btn-secondary" onclick="loadEmailSignature()"><i class="fas fa-upload"></i> Load</button>
-                            <button class="btn btn-sm btn-primary" onclick="saveEmailSignature()"><i class="fas fa-save"></i> Save</button>
-                        </div>
-                        <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
-                            <button class="btn btn-primary" style="width: 100%;" onclick="openSignModal()">
-                                <i class="fas fa-file-signature"></i> Send Document for Signature
-                            </button>
-                        </div>
-                        <div style="margin-top: 12px;">
-                            <div class="card-header" style="padding: 10px 0; border: none;">
-                                <span style="font-size: 12px; font-weight: 600;">Recent Signed</span>
+
+                    <!-- Email List Panel -->
+                    <div class="email-list-panel">
+                        <div class="email-list-toolbar">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <input type="checkbox" class="email-select-all" onchange="selectAllEmails(this.checked)">
+                                <button class="btn btn-sm" onclick="refreshEmails()" title="Refresh"><i class="fas fa-sync-alt"></i></button>
+                                <button class="btn btn-sm" onclick="archiveSelectedEmails()" title="Archive"><i class="fas fa-archive"></i></button>
+                                <button class="btn btn-sm" onclick="deleteSelectedEmails()" title="Delete"><i class="fas fa-trash"></i></button>
                             </div>
-                            <div id="recentSignedDocs" style="font-size: 11px; color: var(--text-muted);">
-                                <p>No signed documents yet</p>
+                            <div class="email-search">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Search emails..." id="emailSearchInput" oninput="filterEmails()">
+                            </div>
+                        </div>
+                        <div class="email-list-items" id="emailListItems">
+                            <!-- Email items rendered here -->
+                        </div>
+                    </div>
+
+                    <!-- Email Viewer Panel -->
+                    <div class="email-viewer-panel">
+                        <div class="email-viewer" id="emailViewer">
+                            <div class="email-viewer-empty">
+                                <i class="fas fa-envelope-open-text"></i>
+                                <h3>Select an email to read</h3>
+                                <p>Choose an email from the list to view its contents</p>
                             </div>
                         </div>
                     </div>
@@ -3157,6 +3703,58 @@ async function apiDelete(endpoint) {
     }
 }
 
+// Toast Notification System
+function showToast(message, type = 'info') {
+    // Remove existing toast
+    const existing = document.querySelector('.toast-notification');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+
+    const colors = {
+        success: { bg: '#10b981', icon: '✓' },
+        error: { bg: '#ef4444', icon: '✕' },
+        warning: { bg: '#f59e0b', icon: '⚠' },
+        info: { bg: '#3b82f6', icon: 'ℹ' }
+    };
+
+    const { bg, icon } = colors[type] || colors.info;
+
+    toast.innerHTML = `<span style="margin-right: 8px;">${icon}</span> ${message}`;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: ${bg};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 99999;
+        animation: slideIn 0.3s ease;
+        display: flex;
+        align-items: center;
+    `;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Add toast animation styles
+const toastStyles = document.createElement('style');
+toastStyles.textContent = `
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+`;
+document.head.appendChild(toastStyles);
+
 // Sync with Backend
 async function syncWithBackend() {
     try {
@@ -3217,6 +3815,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAIHub();
     initResearch();
     initEmby();
+    initMediaSource();
     loadFromLocalStorage();
     updateSystemStats();
     setInterval(updateSystemStats, 3000);
@@ -3268,165 +3867,642 @@ function showVisualPanel(panelId) {
     if (panelId === 'notes') initWiki();
 }
 
-// Mind Map State
+// ═══════════════════════════════════════════════════════════════
+// D3.js MIND MAP - Force-Directed Graph Visualization
+// ═══════════════════════════════════════════════════════════════
 const mindMapState = {
     nodes: [],
+    links: [],
     selectedNode: null,
-    zoom: 1,
-    nextId: 1,
-    initialized: false
+    simulation: null,
+    svg: null,
+    g: null,
+    zoom: null,
+    labelsVisible: true,
+    highlightMode: false,
+    connectMode: false,
+    connectSource: null,
+    initialized: false,
+    nextId: 1
 };
 
 function initMindMap() {
-    if (mindMapState.initialized) return;
+    if (mindMapState.initialized) {
+        // Just update stats if already initialized
+        updateMindMapStats();
+        return;
+    }
     mindMapState.initialized = true;
 
-    // Initialize with root node
-    mindMapState.nodes = [{
-        id: 'root',
-        text: 'Central Idea',
-        x: 0,
-        y: 0,
-        color: '#3B82F6',
-        shape: 'rounded',
-        children: []
-    }];
-
-    renderMindMapOutline();
-    makeMindMapNodesDraggable();
-}
-
-function selectMindMapNode(nodeId) {
-    mindMapState.selectedNode = nodeId;
-    document.querySelectorAll('.mindmap-node').forEach(n => n.classList.remove('selected'));
-    const node = document.getElementById(`mindmap-${nodeId}`);
-    if (node) node.classList.add('selected');
-}
-
-function addMindMapNode() {
-    const id = `node-${mindMapState.nextId++}`;
     const canvas = document.getElementById('mindmapCanvas');
-    const rect = canvas.getBoundingClientRect();
+    if (!canvas) return;
 
-    const newNode = document.createElement('div');
-    newNode.className = 'mindmap-node';
-    newNode.id = `mindmap-${id}`;
-    newNode.setAttribute('data-id', id);
-    newNode.onclick = () => selectMindMapNode(id);
-    newNode.style.left = `${150 + Math.random() * 200}px`;
-    newNode.style.top = `${100 + Math.random() * 200}px`;
-    newNode.innerHTML = `
-        <div class="mindmap-node-content" contenteditable="true">New Idea</div>
-        <div class="mindmap-child-indicator" onclick="event.stopPropagation(); addMindMapChildTo('${id}')">+</div>
-    `;
+    // Clear any existing content
+    canvas.innerHTML = '';
 
-    canvas.appendChild(newNode);
-    mindMapState.nodes.push({ id, text: 'New Idea', x: 150, y: 100, children: [] });
+    const width = canvas.clientWidth || 800;
+    const height = canvas.clientHeight || 600;
 
-    makeMindMapNodesDraggable();
-    renderMindMapOutline();
-    selectMindMapNode(id);
+    // Create SVG with zoom behavior
+    mindMapState.svg = d3.select('#mindmapCanvas')
+        .append('svg')
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .attr('viewBox', `0 0 ${width} ${height}`);
+
+    // Add gradient definitions
+    const defs = mindMapState.svg.append('defs');
+
+    // Gold gradient for center
+    const goldGradient = defs.append('radialGradient').attr('id', 'gold-gradient');
+    goldGradient.append('stop').attr('offset', '0%').attr('stop-color', '#E5C76B');
+    goldGradient.append('stop').attr('offset', '100%').attr('stop-color', '#C3A35B');
+
+    // Blue gradient for sessions/ideas
+    const blueGradient = defs.append('radialGradient').attr('id', 'blue-gradient');
+    blueGradient.append('stop').attr('offset', '0%').attr('stop-color', '#7BA3F7');
+    blueGradient.append('stop').attr('offset', '100%').attr('stop-color', '#6495ED');
+
+    // Green gradient for tags
+    const greenGradient = defs.append('radialGradient').attr('id', 'green-gradient');
+    greenGradient.append('stop').attr('offset', '0%').attr('stop-color', '#6BD88D');
+    greenGradient.append('stop').attr('offset', '100%').attr('stop-color', '#50C878');
+
+    // Purple gradient for sub-ideas
+    const purpleGradient = defs.append('radialGradient').attr('id', 'purple-gradient');
+    purpleGradient.append('stop').attr('offset', '0%').attr('stop-color', '#A78BFA');
+    purpleGradient.append('stop').attr('offset', '100%').attr('stop-color', '#8B5CF6');
+
+    // Glow filter
+    const filter = defs.append('filter').attr('id', 'glow');
+    filter.append('feGaussianBlur').attr('stdDeviation', '3').attr('result', 'coloredBlur');
+    const feMerge = filter.append('feMerge');
+    feMerge.append('feMergeNode').attr('in', 'coloredBlur');
+    feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
+
+    // Main group for zoom/pan
+    mindMapState.g = mindMapState.svg.append('g');
+
+    // Setup zoom
+    mindMapState.zoom = d3.zoom()
+        .scaleExtent([0.2, 4])
+        .on('zoom', (event) => {
+            mindMapState.g.attr('transform', event.transform);
+        });
+    mindMapState.svg.call(mindMapState.zoom);
+
+    // Load saved data or create default
+    loadMindMapData();
+
+    // Setup force simulation
+    setupMindMapSimulation(width, height);
+
+    // Render the graph
+    renderMindMapGraph();
+
+    // Update stats
+    updateMindMapStats();
 }
 
-function addMindMapChild() {
-    if (!mindMapState.selectedNode) {
-        alert('Please select a node first');
-        return;
+function loadMindMapData() {
+    const saved = localStorage.getItem('superdash_mindmap');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            mindMapState.nodes = data.nodes || [];
+            mindMapState.links = data.links || [];
+            mindMapState.nextId = data.nextId || 1;
+        } catch(e) {
+            createDefaultMindMap();
+        }
+    } else {
+        createDefaultMindMap();
     }
-    addMindMapChildTo(mindMapState.selectedNode);
 }
 
-function addMindMapChildTo(parentId) {
+function createDefaultMindMap() {
+    mindMapState.nodes = [
+        { id: 'center', label: 'My Ideas', type: 'center', size: 45, tags: [] },
+        { id: 'idea-1', label: 'Project Alpha', type: 'session', size: 30, tags: ['development', 'priority'] },
+        { id: 'idea-2', label: 'Research Topics', type: 'session', size: 30, tags: ['research', 'learning'] },
+        { id: 'idea-3', label: 'Creative Ideas', type: 'session', size: 30, tags: ['creative', 'brainstorm'] },
+        { id: 'tag-dev', label: '#development', type: 'tag', size: 18, usage: 1 },
+        { id: 'tag-research', label: '#research', type: 'tag', size: 18, usage: 1 },
+        { id: 'tag-creative', label: '#creative', type: 'tag', size: 18, usage: 1 },
+        { id: 'sub-1', label: 'API Design', type: 'idea', size: 22, parentId: 'idea-1' },
+        { id: 'sub-2', label: 'UI/UX Flow', type: 'idea', size: 22, parentId: 'idea-1' }
+    ];
+
+    mindMapState.links = [
+        { source: 'center', target: 'idea-1', type: 'session-link' },
+        { source: 'center', target: 'idea-2', type: 'session-link' },
+        { source: 'center', target: 'idea-3', type: 'session-link' },
+        { source: 'idea-1', target: 'tag-dev', type: 'tag-link' },
+        { source: 'idea-2', target: 'tag-research', type: 'tag-link' },
+        { source: 'idea-3', target: 'tag-creative', type: 'tag-link' },
+        { source: 'idea-1', target: 'sub-1', type: 'child-link' },
+        { source: 'idea-1', target: 'sub-2', type: 'child-link' }
+    ];
+
+    mindMapState.nextId = 10;
+}
+
+function setupMindMapSimulation(width, height) {
+    mindMapState.simulation = d3.forceSimulation(mindMapState.nodes)
+        .force('link', d3.forceLink(mindMapState.links).id(d => d.id).distance(d => {
+            if (d.type === 'session-link') return 180;
+            if (d.type === 'child-link') return 100;
+            return 120;
+        }).strength(0.5))
+        .force('charge', d3.forceManyBody().strength(d => {
+            if (d.type === 'center') return -600;
+            if (d.type === 'session') return -400;
+            return -200;
+        }))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('collision', d3.forceCollide().radius(d => d.size + 15));
+}
+
+function renderMindMapGraph() {
+    const g = mindMapState.g;
+
+    // Clear existing elements
+    g.selectAll('*').remove();
+
+    // Draw links
+    const link = g.append('g')
+        .attr('class', 'links')
+        .selectAll('line')
+        .data(mindMapState.links)
+        .enter()
+        .append('line')
+        .attr('class', 'link')
+        .attr('stroke', d => {
+            if (d.type === 'session-link') return '#C3A35B';
+            if (d.type === 'child-link') return '#8B5CF6';
+            return '#50C878';
+        })
+        .attr('stroke-width', d => d.type === 'session-link' ? 3 : 2)
+        .attr('stroke-opacity', 0.5);
+
+    // Draw nodes
+    const node = g.append('g')
+        .attr('class', 'nodes')
+        .selectAll('g')
+        .data(mindMapState.nodes)
+        .enter()
+        .append('g')
+        .attr('class', d => `node node-${d.type}`)
+        .attr('filter', 'url(#glow)')
+        .call(d3.drag()
+            .on('start', dragstarted)
+            .on('drag', dragged)
+            .on('end', dragended));
+
+    // Node circles
+    node.append('circle')
+        .attr('r', d => d.size)
+        .attr('fill', d => {
+            if (d.type === 'center') return 'url(#gold-gradient)';
+            if (d.type === 'session') return 'url(#blue-gradient)';
+            if (d.type === 'tag') return 'url(#green-gradient)';
+            return 'url(#purple-gradient)';
+        })
+        .attr('stroke', d => {
+            if (d.type === 'center') return '#C3A35B';
+            if (d.type === 'session') return '#6495ED';
+            if (d.type === 'tag') return '#50C878';
+            return '#8B5CF6';
+        })
+        .attr('stroke-width', 3)
+        .style('cursor', 'pointer');
+
+    // Node labels
+    const labels = node.append('text')
+        .text(d => d.label)
+        .attr('text-anchor', 'middle')
+        .attr('dy', d => d.size + 18)
+        .attr('fill', '#ccc')
+        .attr('font-size', d => {
+            if (d.type === 'center') return '14px';
+            if (d.type === 'session') return '12px';
+            return '10px';
+        })
+        .attr('font-weight', d => d.type === 'center' ? '600' : '400')
+        .style('pointer-events', 'none');
+
+    // Node interaction
+    node.on('mouseover', function(event, d) {
+        showMindMapTooltip(event, d);
+        highlightConnections(d);
+    });
+
+    node.on('mouseout', function() {
+        hideMindMapTooltip();
+        resetHighlight();
+    });
+
+    node.on('click', function(event, d) {
+        event.stopPropagation();
+        if (mindMapState.connectMode && mindMapState.connectSource) {
+            // Create connection
+            createMindMapConnection(mindMapState.connectSource, d.id);
+            mindMapState.connectMode = false;
+            mindMapState.connectSource = null;
+            document.querySelectorAll('.mindmap-toolbar .btn').forEach(b => b.classList.remove('active'));
+        } else if (mindMapState.connectMode) {
+            mindMapState.connectSource = d.id;
+            d3.select(this).select('circle').attr('stroke-width', 5);
+        } else {
+            selectMindMapNodeD3(d);
+        }
+    });
+
+    // Simulation tick
+    mindMapState.simulation.on('tick', () => {
+        link
+            .attr('x1', d => d.source.x)
+            .attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x)
+            .attr('y2', d => d.target.y);
+
+        node.attr('transform', d => `translate(${d.x},${d.y})`);
+    });
+
+    // Restart simulation
+    mindMapState.simulation.alpha(0.8).restart();
+}
+
+function dragstarted(event, d) {
+    if (!event.active) mindMapState.simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+}
+
+function dragged(event, d) {
+    d.fx = event.x;
+    d.fy = event.y;
+}
+
+function dragended(event, d) {
+    if (!event.active) mindMapState.simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+    saveMindMap();
+}
+
+function showMindMapTooltip(event, d) {
+    const tooltip = document.getElementById('mindmapTooltip');
+    if (!tooltip) return;
+
+    let content = `<h5>${d.label}</h5>`;
+
+    if (d.type === 'session' || d.type === 'idea') {
+        content += `<p style="color: #aaa;">Click to select • Drag to move</p>`;
+        if (d.tags && d.tags.length > 0) {
+            content += '<div class="tags">';
+            d.tags.forEach(tag => {
+                content += `<span class="tag">#${tag}</span>`;
+            });
+            content += '</div>';
+        }
+    } else if (d.type === 'tag') {
+        const connectedCount = mindMapState.links.filter(l =>
+            l.target.id === d.id || l.source.id === d.id
+        ).length;
+        content += `<p style="color: #aaa;">Connected to ${connectedCount} node${connectedCount > 1 ? 's' : ''}</p>`;
+    } else if (d.type === 'center') {
+        content += `<p style="color: #aaa;">Central hub • ${mindMapState.nodes.length} nodes total</p>`;
+    }
+
+    tooltip.innerHTML = content;
+    tooltip.style.left = (event.pageX + 15) + 'px';
+    tooltip.style.top = (event.pageY - 10) + 'px';
+    tooltip.style.opacity = 1;
+}
+
+function hideMindMapTooltip() {
+    const tooltip = document.getElementById('mindmapTooltip');
+    if (tooltip) tooltip.style.opacity = 0;
+}
+
+function highlightConnections(d) {
+    mindMapState.g.selectAll('.link')
+        .style('stroke-opacity', l =>
+            l.source.id === d.id || l.target.id === d.id ? 1 : 0.15
+        );
+
+    mindMapState.g.selectAll('.node')
+        .style('opacity', n => {
+            if (n.id === d.id) return 1;
+            const isConnected = mindMapState.links.some(l =>
+                (l.source.id === d.id && l.target.id === n.id) ||
+                (l.target.id === d.id && l.source.id === n.id)
+            );
+            return isConnected ? 1 : 0.3;
+        });
+}
+
+function resetHighlight() {
+    mindMapState.g.selectAll('.link').style('stroke-opacity', 0.5);
+    mindMapState.g.selectAll('.node').style('opacity', 1);
+}
+
+function selectMindMapNodeD3(d) {
+    mindMapState.selectedNode = d.id;
+
+    // Reset all stroke widths
+    mindMapState.g.selectAll('.node circle').attr('stroke-width', 3);
+
+    // Highlight selected
+    mindMapState.g.selectAll('.node')
+        .filter(n => n.id === d.id)
+        .select('circle')
+        .attr('stroke-width', 5)
+        .attr('stroke', '#00CED1');
+}
+
+function showAddMindMapNodeModal() {
+    showModal('addMindMapNode');
+    setTimeout(() => populateNodeParentDropdown(), 50);
+}
+
+function addMindMapNodeFromModal() {
+    const label = document.getElementById('newNodeLabel')?.value || 'New Node';
+    const type = document.querySelector('.mindmap-node-type-btn.active')?.dataset?.type || 'idea';
+    const parentId = document.getElementById('newNodeParent')?.value || null;
+
+    addMindMapNode(label, type, parentId);
+    closeModal();
+}
+
+function addMindMapNode(label = 'New Idea', type = 'idea', parentId = null) {
     const id = `node-${mindMapState.nextId++}`;
-    const parentNode = document.getElementById(`mindmap-${parentId}`);
+
+    // Find a good position near parent or center
+    let x, y;
+    if (parentId) {
+        const parent = mindMapState.nodes.find(n => n.id === parentId);
+        if (parent) {
+            x = (parent.x || 400) + 100 + Math.random() * 50;
+            y = (parent.y || 300) + Math.random() * 100 - 50;
+        }
+    } else {
+        const center = mindMapState.nodes.find(n => n.type === 'center');
+        x = (center?.x || 400) + 150 + Math.random() * 100;
+        y = (center?.y || 300) + Math.random() * 200 - 100;
+    }
+
+    const sizes = { center: 45, session: 30, tag: 18, idea: 22 };
+
+    const newNode = {
+        id,
+        label,
+        type,
+        size: sizes[type] || 22,
+        tags: [],
+        x,
+        y
+    };
+    if (parentId) newNode.parentId = parentId;
+
+    mindMapState.nodes.push(newNode);
+
+    // Auto-connect to parent or center
+    const targetId = parentId || 'center';
+    const linkType = parentId ? 'child-link' : 'session-link';
+    mindMapState.links.push({ source: targetId, target: id, type: linkType });
+
+    // Reinitialize simulation with new data
     const canvas = document.getElementById('mindmapCanvas');
+    const width = canvas?.clientWidth || 800;
+    const height = canvas?.clientHeight || 600;
 
-    if (!parentNode) return;
+    mindMapState.simulation.nodes(mindMapState.nodes);
+    mindMapState.simulation.force('link').links(mindMapState.links);
 
-    const parentRect = parentNode.getBoundingClientRect();
-    const canvasRect = canvas.getBoundingClientRect();
-
-    const newNode = document.createElement('div');
-    newNode.className = 'mindmap-node';
-    newNode.id = `mindmap-${id}`;
-    newNode.setAttribute('data-id', id);
-    newNode.setAttribute('data-parent', parentId);
-    newNode.onclick = () => selectMindMapNode(id);
-    newNode.style.left = `${parentNode.offsetLeft + 200}px`;
-    newNode.style.top = `${parentNode.offsetTop + (mindMapState.nodes.length * 30) % 200}px`;
-    newNode.innerHTML = `
-        <div class="mindmap-node-content" contenteditable="true">Sub Idea</div>
-        <div class="mindmap-child-indicator" onclick="event.stopPropagation(); addMindMapChildTo('${id}')">+</div>
-    `;
-
-    canvas.appendChild(newNode);
-
-    const parentData = mindMapState.nodes.find(n => n.id === parentId);
-    if (parentData) parentData.children.push(id);
-    mindMapState.nodes.push({ id, text: 'Sub Idea', parentId, children: [] });
-
-    drawMindMapConnections();
-    makeMindMapNodesDraggable();
-    renderMindMapOutline();
-    selectMindMapNode(id);
+    renderMindMapGraph();
+    updateMindMapStats();
+    saveMindMap();
 }
 
-function deleteMindMapNode() {
-    if (!mindMapState.selectedNode || mindMapState.selectedNode === 'root') {
-        alert('Cannot delete root node');
-        return;
-    }
+function connectMindMapNodes() {
+    mindMapState.connectMode = !mindMapState.connectMode;
+    mindMapState.connectSource = null;
 
-    const node = document.getElementById(`mindmap-${mindMapState.selectedNode}`);
-    if (node) node.remove();
-
-    mindMapState.nodes = mindMapState.nodes.filter(n => n.id !== mindMapState.selectedNode);
-    mindMapState.selectedNode = null;
-
-    drawMindMapConnections();
-    renderMindMapOutline();
-}
-
-function setMindMapNodeColor(color) {
-    if (!mindMapState.selectedNode) return;
-    const node = document.getElementById(`mindmap-${mindMapState.selectedNode}`);
-    if (node && mindMapState.selectedNode !== 'root') {
-        node.style.borderColor = color;
-        node.style.boxShadow = `0 4px 20px ${color}40`;
-    }
-}
-
-function setMindMapNodeShape(shape) {
-    if (!mindMapState.selectedNode) return;
-    const node = document.getElementById(`mindmap-${mindMapState.selectedNode}`);
-    if (node) {
-        switch(shape) {
-            case 'rounded': node.style.borderRadius = '12px'; break;
-            case 'rectangle': node.style.borderRadius = '4px'; break;
-            case 'pill': node.style.borderRadius = '50px'; break;
-            case 'diamond': node.style.transform = 'rotate(45deg)'; break;
+    const btn = event?.target?.closest('.btn');
+    if (btn) {
+        if (mindMapState.connectMode) {
+            btn.classList.add('active');
+            btn.innerHTML = '<i class="fas fa-link"></i> Click 2 Nodes';
+        } else {
+            btn.classList.remove('active');
+            btn.innerHTML = '<i class="fas fa-link"></i> Connect';
         }
     }
 }
 
-function zoomMindMap(factor) {
-    mindMapState.zoom *= factor;
-    mindMapState.zoom = Math.max(0.5, Math.min(2, mindMapState.zoom));
-    const canvas = document.getElementById('mindmapCanvas');
-    canvas.style.transform = `scale(${mindMapState.zoom})`;
+function createMindMapConnection(sourceId, targetId) {
+    if (sourceId === targetId) return;
+
+    // Check if connection already exists
+    const exists = mindMapState.links.some(l =>
+        (l.source.id === sourceId && l.target.id === targetId) ||
+        (l.source.id === targetId && l.target.id === sourceId)
+    );
+
+    if (!exists) {
+        mindMapState.links.push({ source: sourceId, target: targetId, type: 'tag-link' });
+        mindMapState.simulation.force('link').links(mindMapState.links);
+        renderMindMapGraph();
+        updateMindMapStats();
+        saveMindMap();
+    }
 }
 
-function centerMindMap() {
-    mindMapState.zoom = 1;
-    const canvas = document.getElementById('mindmapCanvas');
-    canvas.style.transform = 'scale(1)';
-    canvas.scrollTop = canvas.scrollHeight / 2 - canvas.clientHeight / 2;
-    canvas.scrollLeft = canvas.scrollWidth / 2 - canvas.clientWidth / 2;
+function deleteMindMapNode() {
+    if (!mindMapState.selectedNode) {
+        alert('Please select a node first by clicking on it');
+        return;
+    }
+
+    if (mindMapState.selectedNode === 'center') {
+        alert('Cannot delete the central hub');
+        return;
+    }
+
+    // Remove node
+    mindMapState.nodes = mindMapState.nodes.filter(n => n.id !== mindMapState.selectedNode);
+
+    // Remove connected links
+    mindMapState.links = mindMapState.links.filter(l =>
+        l.source.id !== mindMapState.selectedNode && l.target.id !== mindMapState.selectedNode
+    );
+
+    mindMapState.selectedNode = null;
+
+    // Update simulation
+    mindMapState.simulation.nodes(mindMapState.nodes);
+    mindMapState.simulation.force('link').links(mindMapState.links);
+
+    renderMindMapGraph();
+    updateMindMapStats();
+    saveMindMap();
 }
 
-function exportMindMap() {
+function resetMindMapZoom() {
+    mindMapState.svg.transition().duration(750).call(
+        mindMapState.zoom.transform,
+        d3.zoomIdentity.translate(0, 0).scale(1)
+    );
+}
+
+function toggleMindMapLabels() {
+    mindMapState.labelsVisible = !mindMapState.labelsVisible;
+    mindMapState.g.selectAll('.node text').style('opacity', mindMapState.labelsVisible ? 1 : 0);
+
+    const btn = document.getElementById('toggleLabelsBtn');
+    if (btn) btn.classList.toggle('active', !mindMapState.labelsVisible);
+}
+
+function highlightMindMapShared() {
+    mindMapState.highlightMode = !mindMapState.highlightMode;
+    const btn = document.getElementById('highlightSharedBtn');
+    if (btn) btn.classList.toggle('active', mindMapState.highlightMode);
+
+    if (mindMapState.highlightMode) {
+        // Find nodes with multiple connections
+        const connectionCount = {};
+        mindMapState.links.forEach(l => {
+            connectionCount[l.source.id] = (connectionCount[l.source.id] || 0) + 1;
+            connectionCount[l.target.id] = (connectionCount[l.target.id] || 0) + 1;
+        });
+
+        const sharedNodes = Object.entries(connectionCount)
+            .filter(([id, count]) => count > 1)
+            .map(([id]) => id);
+
+        mindMapState.g.selectAll('.node')
+            .style('opacity', d => sharedNodes.includes(d.id) ? 1 : 0.3);
+
+        mindMapState.g.selectAll('.link')
+            .style('stroke-opacity', l =>
+                sharedNodes.includes(l.source.id) || sharedNodes.includes(l.target.id) ? 0.8 : 0.1
+            );
+    } else {
+        resetHighlight();
+    }
+}
+
+function autoArrangeMindMap() {
+    // Reset all fixed positions
+    mindMapState.nodes.forEach(n => {
+        n.fx = null;
+        n.fy = null;
+    });
+
+    // Restart simulation with high alpha
+    mindMapState.simulation.alpha(1).restart();
+}
+
+function loadMindMapPreset(preset) {
+    if (preset === 'project') {
+        mindMapState.nodes = [
+            { id: 'center', label: 'Project Plan', type: 'center', size: 45, tags: [] },
+            { id: 'phase-1', label: 'Phase 1: Planning', type: 'session', size: 30, tags: ['planning'] },
+            { id: 'phase-2', label: 'Phase 2: Development', type: 'session', size: 30, tags: ['development'] },
+            { id: 'phase-3', label: 'Phase 3: Testing', type: 'session', size: 30, tags: ['testing'] },
+            { id: 'phase-4', label: 'Phase 4: Deploy', type: 'session', size: 30, tags: ['deployment'] },
+            { id: 'task-1', label: 'Requirements', type: 'idea', size: 22, parentId: 'phase-1' },
+            { id: 'task-2', label: 'Architecture', type: 'idea', size: 22, parentId: 'phase-1' },
+            { id: 'task-3', label: 'Frontend', type: 'idea', size: 22, parentId: 'phase-2' },
+            { id: 'task-4', label: 'Backend', type: 'idea', size: 22, parentId: 'phase-2' },
+            { id: 'task-5', label: 'Unit Tests', type: 'idea', size: 22, parentId: 'phase-3' },
+            { id: 'task-6', label: 'Integration', type: 'idea', size: 22, parentId: 'phase-3' }
+        ];
+        mindMapState.links = [
+            { source: 'center', target: 'phase-1', type: 'session-link' },
+            { source: 'center', target: 'phase-2', type: 'session-link' },
+            { source: 'center', target: 'phase-3', type: 'session-link' },
+            { source: 'center', target: 'phase-4', type: 'session-link' },
+            { source: 'phase-1', target: 'task-1', type: 'child-link' },
+            { source: 'phase-1', target: 'task-2', type: 'child-link' },
+            { source: 'phase-2', target: 'task-3', type: 'child-link' },
+            { source: 'phase-2', target: 'task-4', type: 'child-link' },
+            { source: 'phase-3', target: 'task-5', type: 'child-link' },
+            { source: 'phase-3', target: 'task-6', type: 'child-link' },
+            { source: 'phase-1', target: 'phase-2', type: 'tag-link' },
+            { source: 'phase-2', target: 'phase-3', type: 'tag-link' },
+            { source: 'phase-3', target: 'phase-4', type: 'tag-link' }
+        ];
+    } else if (preset === 'brainstorm') {
+        mindMapState.nodes = [
+            { id: 'center', label: 'Brainstorm', type: 'center', size: 45, tags: [] },
+            { id: 'what', label: 'What?', type: 'session', size: 30, tags: [] },
+            { id: 'why', label: 'Why?', type: 'session', size: 30, tags: [] },
+            { id: 'how', label: 'How?', type: 'session', size: 30, tags: [] },
+            { id: 'who', label: 'Who?', type: 'session', size: 30, tags: [] },
+            { id: 'when', label: 'When?', type: 'session', size: 30, tags: [] },
+            { id: 'tag-ideas', label: '#ideas', type: 'tag', size: 18, usage: 5 },
+            { id: 'tag-questions', label: '#questions', type: 'tag', size: 18, usage: 5 }
+        ];
+        mindMapState.links = [
+            { source: 'center', target: 'what', type: 'session-link' },
+            { source: 'center', target: 'why', type: 'session-link' },
+            { source: 'center', target: 'how', type: 'session-link' },
+            { source: 'center', target: 'who', type: 'session-link' },
+            { source: 'center', target: 'when', type: 'session-link' },
+            { source: 'what', target: 'tag-ideas', type: 'tag-link' },
+            { source: 'why', target: 'tag-questions', type: 'tag-link' }
+        ];
+    }
+
+    mindMapState.nextId = 20;
+
+    // Reinitialize
+    const canvas = document.getElementById('mindmapCanvas');
+    const width = canvas?.clientWidth || 800;
+    const height = canvas?.clientHeight || 600;
+
+    mindMapState.simulation.nodes(mindMapState.nodes);
+    mindMapState.simulation.force('link').links(mindMapState.links);
+    mindMapState.simulation.force('center', d3.forceCenter(width / 2, height / 2));
+
+    renderMindMapGraph();
+    updateMindMapStats();
+    saveMindMap();
+}
+
+function saveMindMap() {
+    const data = {
+        nodes: mindMapState.nodes.map(n => ({
+            id: n.id,
+            label: n.label,
+            type: n.type,
+            size: n.size,
+            tags: n.tags || [],
+            x: n.x,
+            y: n.y
+        })),
+        links: mindMapState.links.map(l => ({
+            source: typeof l.source === 'object' ? l.source.id : l.source,
+            target: typeof l.target === 'object' ? l.target.id : l.target,
+            type: l.type
+        })),
+        nextId: mindMapState.nextId
+    };
+    localStorage.setItem('superdash_mindmap', JSON.stringify(data));
+}
+
+function exportMindMapPNG() {
+    // Export as JSON for now (PNG would require html2canvas)
     const data = {
         nodes: mindMapState.nodes,
+        links: mindMapState.links.map(l => ({
+            source: typeof l.source === 'object' ? l.source.id : l.source,
+            target: typeof l.target === 'object' ? l.target.id : l.target,
+            type: l.type
+        })),
         exportDate: new Date().toISOString()
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -3435,87 +4511,34 @@ function exportMindMap() {
     a.href = url;
     a.download = `mindmap-${Date.now()}.json`;
     a.click();
+    URL.revokeObjectURL(url);
 }
 
-function renderMindMapOutline() {
-    const outline = document.getElementById('mindmapOutline');
-    if (!outline) return;
+function updateMindMapStats() {
+    const nodeCount = document.getElementById('mindmap-node-count');
+    const linkCount = document.getElementById('mindmap-link-count');
+    const tagCount = document.getElementById('mindmap-tag-count');
 
-    let html = '';
-    mindMapState.nodes.forEach(node => {
-        const isSelected = node.id === mindMapState.selectedNode;
-        html += `<div class="mindmap-outline-item ${isSelected ? 'active' : ''}" onclick="selectMindMapNode('${node.id}')">
-            <i class="fas fa-circle" style="font-size: 6px; color: var(--blue);"></i>
-            ${node.text || 'Untitled'}
-        </div>`;
-    });
-    outline.innerHTML = html;
+    if (nodeCount) nodeCount.textContent = mindMapState.nodes.length;
+    if (linkCount) linkCount.textContent = mindMapState.links.length;
+    if (tagCount) tagCount.textContent = mindMapState.nodes.filter(n => n.type === 'tag').length;
 }
 
-function drawMindMapConnections() {
-    // Remove existing connection SVG
-    const existingSvg = document.querySelector('.mindmap-connections');
-    if (existingSvg) existingSvg.remove();
-
-    const canvas = document.getElementById('mindmapCanvas');
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.classList.add('mindmap-connections');
-    svg.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;';
-
-    mindMapState.nodes.forEach(node => {
-        if (node.parentId) {
-            const parentEl = document.getElementById(`mindmap-${node.parentId}`);
-            const childEl = document.getElementById(`mindmap-${node.id}`);
-
-            if (parentEl && childEl) {
-                const x1 = parentEl.offsetLeft + parentEl.offsetWidth;
-                const y1 = parentEl.offsetTop + parentEl.offsetHeight / 2;
-                const x2 = childEl.offsetLeft;
-                const y2 = childEl.offsetTop + childEl.offsetHeight / 2;
-
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                const midX = (x1 + x2) / 2;
-                path.setAttribute('d', `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`);
-                path.setAttribute('stroke', 'var(--blue)');
-                path.setAttribute('stroke-width', '2');
-                path.setAttribute('fill', 'none');
-                svg.appendChild(path);
-            }
-        }
-    });
-
-    canvas.insertBefore(svg, canvas.firstChild);
+function selectNodeType(btn) {
+    document.querySelectorAll('.mindmap-node-type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
 }
 
-function makeMindMapNodesDraggable() {
-    document.querySelectorAll('.mindmap-node').forEach(node => {
-        node.onmousedown = function(e) {
-            if (e.target.contentEditable === 'true' && e.target.matches(':focus')) return;
+function populateNodeParentDropdown() {
+    const select = document.getElementById('newNodeParent');
+    if (!select) return;
 
-            const shiftX = e.clientX - node.getBoundingClientRect().left;
-            const shiftY = e.clientY - node.getBoundingClientRect().top;
-
-            function moveAt(pageX, pageY) {
-                const canvas = document.getElementById('mindmapCanvas');
-                const rect = canvas.getBoundingClientRect();
-                node.style.left = (pageX - rect.left - shiftX + canvas.scrollLeft) + 'px';
-                node.style.top = (pageY - rect.top - shiftY + canvas.scrollTop) + 'px';
-                drawMindMapConnections();
-            }
-
-            function onMouseMove(e) {
-                moveAt(e.pageX, e.pageY);
-            }
-
-            document.addEventListener('mousemove', onMouseMove);
-            document.onmouseup = function() {
-                document.removeEventListener('mousemove', onMouseMove);
-                document.onmouseup = null;
-            };
-        };
-
-        node.ondragstart = () => false;
-    });
+    select.innerHTML = '<option value="">Auto-connect to center</option>';
+    mindMapState.nodes
+        .filter(n => n.type === 'center' || n.type === 'session')
+        .forEach(n => {
+            select.innerHTML += `<option value="${n.id}">${n.label}</option>`;
+        });
 }
 
 // Wiki/Notes functions
@@ -4712,6 +5735,28 @@ function showModal(type) {
             <input type="password" class="modal-input" placeholder="Password/App Password" id="smtpPassword">
             <p style="font-size: 11px; color: var(--text-muted); margin: 8px 0;"><i class="fas fa-info-circle"></i> For Gmail, use an App Password from <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color: var(--blue);">Google Account Settings</a></p>
             <div class="modal-buttons"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveEmailConfig()"><i class="fas fa-save"></i> Save</button></div>`,
+        addMindMapNode: `<h3><i class="fas fa-brain" style="color: #C3A35B;"></i> Add Mind Map Node</h3>
+            <div class="mindmap-node-form">
+                <div class="form-group">
+                    <label style="display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">Node Label</label>
+                    <input type="text" class="modal-input" placeholder="Enter node text..." id="newNodeLabel" style="margin-bottom: 0;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">Node Type</label>
+                    <div class="mindmap-node-type-select">
+                        <button type="button" class="mindmap-node-type-btn session active" data-type="session" onclick="selectNodeType(this)"><i class="fas fa-lightbulb"></i> Idea</button>
+                        <button type="button" class="mindmap-node-type-btn tag" data-type="tag" onclick="selectNodeType(this)"><i class="fas fa-tag"></i> Tag</button>
+                        <button type="button" class="mindmap-node-type-btn idea" data-type="idea" onclick="selectNodeType(this)"><i class="fas fa-code-branch"></i> Sub-Idea</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">Connect to (optional)</label>
+                    <select class="modal-input" id="newNodeParent" style="margin-bottom: 0;">
+                        <option value="">Auto-connect to center</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-buttons" style="margin-top: 16px;"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="addMindMapNodeFromModal()"><i class="fas fa-plus"></i> Add Node</button></div>`,
     };
 
     // Handle custom content passed as second parameter
@@ -5054,18 +6099,54 @@ function initEmail() {
 
 function renderEmailList() {
     const list = document.getElementById('emailListItems');
+    const unreadCount = state.email.inbox.filter(e => e.unread).length;
+    const countEl = document.getElementById('inboxCount');
+    if (countEl) countEl.textContent = unreadCount || '';
+
     list.innerHTML = state.email.inbox.map(email => `
         <div class="email-item ${email.unread ? 'unread' : ''} ${state.email.selectedEmail === email.id ? 'active' : ''}" onclick="selectEmail(${email.id})">
-            ${email.unread ? '<div class="unread-dot"></div>' : ''}
+            <input type="checkbox" class="email-item-checkbox" onclick="event.stopPropagation()">
             <div class="email-avatar-small">${email.from.split(' ').map(n => n[0]).join('').slice(0,2)}</div>
             <div class="email-content">
+                <div class="email-from">
+                    <span>${email.from}</span>
+                    <span class="email-meta">${formatEmailDate(email.date)}</span>
+                </div>
                 <div class="email-subject">${email.subject}</div>
-                <div class="email-preview">${email.from} - ${email.body.slice(0, 50)}...</div>
+                <div class="email-preview">${email.body.slice(0, 60)}...</div>
             </div>
-            <div class="email-meta">${email.date.slice(5, 10)}</div>
+            <i class="fas fa-star email-star ${email.starred ? 'starred' : ''}" onclick="event.stopPropagation(); toggleEmailStar(${email.id})"></i>
         </div>
     `).join('');
 }
+
+function formatEmailDate(dateStr) {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const diff = Math.floor((today - date) / (1000 * 60 * 60 * 24));
+    if (diff === 0) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (diff === 1) return 'Yesterday';
+    if (diff < 7) return date.toLocaleDateString([], { weekday: 'short' });
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+function toggleEmailStar(id) {
+    const email = state.email.inbox.find(e => e.id === id);
+    if (email) { email.starred = !email.starred; renderEmailList(); }
+}
+
+function selectEmailFolder(folder) {
+    document.querySelectorAll('.email-folder').forEach(f => f.classList.remove('active'));
+    document.querySelector(`.email-folder[data-folder="${folder}"]`)?.classList.add('active');
+    state.email.currentFolder = folder;
+    renderEmailList();
+}
+
+function refreshEmails() { addTerminalLine('[Email] Refreshing inbox...'); renderEmailList(); }
+function filterEmails() { /* TODO: implement search filter */ }
+function selectAllEmails(checked) { document.querySelectorAll('.email-item-checkbox').forEach(cb => cb.checked = checked); }
+function archiveSelectedEmails() { addTerminalLine('[Email] Archived selected emails'); }
+function deleteSelectedEmails() { addTerminalLine('[Email] Deleted selected emails'); }
 
 function selectEmail(id) {
     const email = state.email.inbox.find(e => e.id === id);
@@ -5075,29 +6156,47 @@ function selectEmail(id) {
         renderEmailList();
         document.getElementById('emailViewer').innerHTML = `
             <div class="email-viewer-header">
-                <div style="display: flex; gap: 16px; align-items: center;">
-                    <div class="email-avatar-small" style="width: 48px; height: 48px; font-size: 16px;">${email.from.split(' ').map(n => n[0]).join('').slice(0,2)}</div>
-                    <div>
-                        <div style="font-size: 16px; font-weight: 600;">${email.subject}</div>
-                        <div style="font-size: 13px; color: var(--text-muted);">From: ${email.from} &lt;${email.email}&gt;</div>
-                        <div style="font-size: 12px; color: var(--text-muted);">${email.date}</div>
+                <div class="email-viewer-subject">${email.subject}</div>
+                <div class="email-viewer-meta">
+                    <div class="email-avatar-small" style="width: 44px; height: 44px; font-size: 15px;">${email.from.split(' ').map(n => n[0]).join('').slice(0,2)}</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px; font-weight: 500;">${email.from}</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">&lt;${email.email}&gt;</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 12px; color: var(--text-muted);">${new Date(email.date).toLocaleString()}</div>
+                        <div style="display: flex; gap: 8px; margin-top: 4px;">
+                            <button class="btn btn-sm" onclick="toggleEmailStar(${id})" title="Star"><i class="fas fa-star ${email.starred ? 'starred' : ''}"></i></button>
+                            <button class="btn btn-sm" title="More"><i class="fas fa-ellipsis-v"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="email-viewer-body">${email.body.replace(/\n/g, '<br>')}</div>
+            <div class="email-viewer-body">
+                <div style="font-size: 14px; line-height: 1.8; color: var(--text);">${email.body.replace(/\n/g, '<br>')}</div>
+            </div>
             <div class="email-viewer-actions">
                 <button class="btn btn-primary" onclick="replyEmail(${id})"><i class="fas fa-reply"></i> Reply</button>
                 <button class="btn btn-secondary" onclick="forwardEmail(${id})"><i class="fas fa-share"></i> Forward</button>
                 <button class="btn btn-secondary" onclick="generateAIReply(${id})"><i class="fas fa-robot"></i> AI Reply</button>
-                <button class="btn btn-secondary" onclick="deleteEmail(${id})"><i class="fas fa-trash"></i> Delete</button>
+                <div style="flex: 1;"></div>
+                <button class="btn btn-secondary" onclick="archiveEmail(${id})"><i class="fas fa-archive"></i></button>
+                <button class="btn btn-secondary" style="color: var(--danger);" onclick="deleteEmail(${id})"><i class="fas fa-trash"></i></button>
             </div>
         `;
     }
 }
 
+function archiveEmail(id) {
+    state.email.inbox = state.email.inbox.filter(e => e.id !== id);
+    renderEmailList();
+    document.getElementById('emailViewer').innerHTML = '<div class="email-viewer-empty"><i class="fas fa-envelope-open-text"></i><h3>Select an email to read</h3><p>Choose an email from the list to view its contents</p></div>';
+    addTerminalLine('[Email] Archived email #' + id);
+}
+
 function replyEmail(id) { const email = state.email.inbox.find(e => e.id === id); if (email) { state.email.compose = { to: email.email, subject: 'Re: ' + email.subject, body: '' }; showModal('composeEmail'); } }
 function forwardEmail(id) { const email = state.email.inbox.find(e => e.id === id); if (email) { state.email.compose = { to: '', subject: 'Fwd: ' + email.subject, body: '\n\n--- Forwarded message ---\n' + email.body }; showModal('composeEmail'); } }
-function deleteEmail(id) { state.email.inbox = state.email.inbox.filter(e => e.id !== id); renderEmailList(); document.getElementById('emailViewer').innerHTML = '<div style="text-align: center; padding: 60px; color: var(--text-muted);"><i class="fas fa-envelope-open" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i><p>Select an email to read</p></div>'; }
+function deleteEmail(id) { state.email.inbox = state.email.inbox.filter(e => e.id !== id); renderEmailList(); document.getElementById('emailViewer').innerHTML = '<div class="email-viewer-empty"><i class="fas fa-envelope-open-text"></i><h3>Select an email to read</h3><p>Choose an email from the list to view its contents</p></div>'; addTerminalLine('[Email] Deleted email #' + id); }
 function generateAIReply(id) { const email = state.email.inbox.find(e => e.id === id); if (email) { state.email.compose = { to: email.email, subject: 'Re: ' + email.subject, body: `Hi ${email.from.split(' ')[0]},\n\nThank you for your email. I have reviewed your message and will get back to you with a detailed response shortly.\n\nBest regards` }; showModal('composeEmail'); } }
 
 // ═══════════════════════════════════════════════════════════════
@@ -5330,13 +6429,12 @@ function initSystemEnhanced() {
         { pid: 5120, name: 'spotify.exe', cpu: 3.4, memory: 380 },
     ];
     renderProcessList();
-    initNotesPreview();
 }
 
 function showSystemPanel(panel) {
     document.querySelectorAll('.system-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.system-panel').forEach(p => p.classList.remove('active'));
-    document.querySelector(`.system-tab:nth-child(${['overview','processes','network','security','files','cleaner','notes','search'].indexOf(panel) + 1})`)?.classList.add('active');
+    document.querySelector(`.system-tab:nth-child(${['overview','processes','network','security','files','cleaner','analytics','databases','search'].indexOf(panel) + 1})`)?.classList.add('active');
     document.getElementById(`panel-${panel}`)?.classList.add('active');
     state.system.currentPanel = panel;
     if (panel === 'network') initNetworkChart();
@@ -5410,55 +6508,101 @@ function refreshFiles() {
     addTerminalLine('[Files] Refreshed file list');
 }
 
+// Drive selection and navigation
+function selectDrive(drive) {
+    // Update active state
+    document.querySelectorAll('.drive-item').forEach(el => el.classList.remove('active'));
+    document.querySelector(`.drive-item[data-drive="${drive}"]`)?.classList.add('active');
+
+    // Set current path to root of drive
+    state.system.fileSystem.currentPath = [drive];
+
+    // Update file structure based on drive
+    const driveStructures = {
+        'C:': { Users: { Admin: { Documents: {}, Downloads: {}, Desktop: {}, Pictures: {}, Videos: {}, '.claude': { settings: {}, projects: {} } } }, Windows: {}, 'Program Files': {} },
+        'D:': { Data: { Backups: {}, Archives: {}, Projects: {} }, Games: {}, Media: {} },
+        'E:': { Storage: { Photos: {}, Videos: {}, Documents: {} }, Temp: {} },
+        'L:': { PROJECTS: { 'EMERGING_ARTIFICIAL_CONSCIOUSNESS': { 'ENHANCED_SECOND_BRAIN_ENTERPRISE': { client: {}, 'worker-backend': {}, 'super-dashboard-deploy': {} } } } },
+        'Y:': { CONSOLE_LEARN: { wiki: { sessions: {} }, dashboards: {}, tools: {} } },
+        'Z:': { public_html: { images: {}, css: {}, js: {}, dashboards: {} } }
+    };
+
+    state.system.fileSystem.structure = driveStructures[drive] || {};
+    renderFileTree();
+    addTerminalLine(`[Files] Selected drive: ${drive}`);
+}
+
+function openFolder(name) {
+    state.system.fileSystem.currentPath.push(name);
+    renderFileTree();
+    addTerminalLine(`[Files] Opened folder: ${name}`);
+}
+
+function navigateTo(path) {
+    const segments = path.split('\\').filter(s => s);
+    state.system.fileSystem.currentPath = segments;
+    renderFileTree();
+}
+
+function toggleFileView() {
+    const tree = document.getElementById('fileTree');
+    tree.classList.toggle('grid-view');
+}
+
 function renderFileTree() {
     const pathEl = document.getElementById('currentPath');
     const treeEl = document.getElementById('fileTree');
     if (!pathEl || !treeEl) return;
 
     const path = state.system.fileSystem.currentPath;
-    pathEl.textContent = path.join('\\') + '\\';
+
+    // Render breadcrumb
+    pathEl.innerHTML = path.map((segment, i) =>
+        `<span class="breadcrumb-item" onclick="navigateTo('${path.slice(0, i + 1).join('\\\\')}')">${segment}</span>` +
+        (i < path.length - 1 ? '<span class="breadcrumb-sep">/</span>' : '')
+    ).join('');
 
     // Navigate to current folder
     let current = state.system.fileSystem.structure;
-    for (const segment of path) {
-        if (current[segment]) current = current[segment];
+    for (let i = 1; i < path.length; i++) {
+        if (current[path[i]]) current = current[path[i]];
     }
 
     // Render contents
     const entries = Object.entries(current);
     treeEl.innerHTML = entries.map(([name, content]) => {
         const isFolder = typeof content === 'object';
-        return `<div class="file-tree-item" onclick="${isFolder ? `navigateToFolder('${name}')` : `openFile('${name}')`}">
-            <i class="fas ${isFolder ? 'fa-folder' : 'fa-file'}" style="color: ${isFolder ? 'var(--warning)' : 'var(--text-muted)'};"></i> ${name}
+        const icon = isFolder ? 'fa-folder' : getFileIcon(name);
+        const color = isFolder ? 'var(--warning)' : getFileColor(name);
+        return `<div class="file-tree-item" onclick="${isFolder ? `openFolder('${name}')` : `openFile('${name}')`}">
+            <i class="fas ${icon}" style="color: ${color};"></i> ${name}
+            ${!isFolder ? '<span style="color: var(--text-muted); font-size: 10px; margin-left: auto;">' + getFileSize() + '</span>' : ''}
         </div>`;
     }).join('') || '<div style="color: var(--text-muted); padding: 20px; text-align: center;">Empty folder</div>';
 }
 
-function navigateToFolder(name) {
-    state.system.fileSystem.currentPath.push(name);
-    renderFileTree();
-    addTerminalLine(`[Files] Opened folder: ${name}`);
+function getFileIcon(name) {
+    const ext = name.split('.').pop().toLowerCase();
+    const icons = { js: 'fa-file-code', jsx: 'fa-file-code', ts: 'fa-file-code', tsx: 'fa-file-code', html: 'fa-file-code', css: 'fa-file-code',
+        json: 'fa-file-code', md: 'fa-file-alt', txt: 'fa-file-alt', pdf: 'fa-file-pdf', doc: 'fa-file-word', docx: 'fa-file-word',
+        xls: 'fa-file-excel', xlsx: 'fa-file-excel', png: 'fa-file-image', jpg: 'fa-file-image', jpeg: 'fa-file-image', gif: 'fa-file-image',
+        mp4: 'fa-file-video', mov: 'fa-file-video', mp3: 'fa-file-audio', wav: 'fa-file-audio', zip: 'fa-file-archive', rar: 'fa-file-archive',
+        sql: 'fa-database', db: 'fa-database', sqlite: 'fa-database' };
+    return icons[ext] || 'fa-file';
 }
 
-function openFile(name) {
-    addTerminalLine(`[Files] Opened file: ${name}`);
+function getFileColor(name) {
+    const ext = name.split('.').pop().toLowerCase();
+    const colors = { js: 'var(--warning)', jsx: 'var(--cyan)', ts: 'var(--blue)', tsx: 'var(--blue)', html: 'var(--orange)', css: 'var(--purple)',
+        json: 'var(--warning)', md: 'var(--text)', pdf: 'var(--danger)', sql: 'var(--purple)', db: 'var(--purple)' };
+    return colors[ext] || 'var(--text-muted)';
 }
 
-function initNotesPreview() {
-    const input = document.getElementById('notesInput');
-    if (input) {
-        input.addEventListener('input', () => {
-            let md = input.value;
-            md = md.replace(/^# (.*$)/gm, '<h1>$1</h1>').replace(/^## (.*$)/gm, '<h2>$1</h2>').replace(/^### (.*$)/gm, '<h3>$1</h3>')
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>')
-                .replace(/^- (.*$)/gm, '<li>$1</li>').replace(/`(.*?)`/g, '<code style="background: var(--bg-input); padding: 2px 6px; border-radius: 4px;">$1</code>')
-                .replace(/\n/g, '<br>');
-            document.getElementById('notesPreview').innerHTML = md || '<p style="color: var(--text-muted);">Preview will appear here...</p>';
-        });
-    }
+function getFileSize() {
+    const sizes = ['1.2 KB', '4.5 KB', '12.3 KB', '256 B', '89 KB', '1.1 MB', '345 B'];
+    return sizes[Math.floor(Math.random() * sizes.length)];
 }
 
-function saveNotes() { localStorage.setItem('superdash_notes', document.getElementById('notesInput')?.value || ''); alert('Notes saved!'); }
 function searchEverything() {
     const query = document.getElementById('everythingSearch').value;
     if (query) {
@@ -7088,24 +8232,53 @@ function renderDatabaseSchema(dbName) {
         return;
     }
 
-    let html = '<div class="db-tables-container">';
+    const tableCount = Object.keys(schema.tables).length;
+    const totalRows = Object.values(schema.tables).reduce((sum, t) => sum + t.rowCount, 0);
+    const totalColumns = Object.values(schema.tables).reduce((sum, t) => sum + t.columns.length, 0);
+
+    let html = `
+        <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+            <div style="flex: 1; background: var(--bg-input); padding: 12px 16px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 24px; font-weight: 700; color: var(--blue);">${tableCount}</div>
+                <div style="font-size: 10px; color: var(--text-muted);">Tables</div>
+            </div>
+            <div style="flex: 1; background: var(--bg-input); padding: 12px 16px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 24px; font-weight: 700; color: var(--green);">${totalRows.toLocaleString()}</div>
+                <div style="font-size: 10px; color: var(--text-muted);">Total Rows</div>
+            </div>
+            <div style="flex: 1; background: var(--bg-input); padding: 12px 16px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 24px; font-weight: 700; color: var(--purple);">${totalColumns}</div>
+                <div style="font-size: 10px; color: var(--text-muted);">Columns</div>
+            </div>
+        </div>
+        <div class="db-tables-container">`;
+
     for (const [tableName, tableInfo] of Object.entries(schema.tables)) {
+        const pkCount = tableInfo.columns.filter(c => c.pk).length;
+        const fkCount = tableInfo.columns.filter(c => c.fk).length;
         html += `
             <div class="db-table-card">
                 <div class="db-table-header">
-                    <span><i class="fas fa-table"></i> ${tableName}</span>
-                    <span class="db-row-count">${tableInfo.rowCount.toLocaleString()} rows</span>
+                    <div>
+                        <span><i class="fas fa-table"></i> ${tableName}</span>
+                        <div class="db-table-stats">
+                            <span class="db-stat"><i class="fas fa-columns"></i> ${tableInfo.columns.length} columns</span>
+                            ${pkCount > 0 ? `<span class="db-stat"><i class="fas fa-key" style="color: var(--warning);"></i> ${pkCount} PK</span>` : ''}
+                            ${fkCount > 0 ? `<span class="db-stat"><i class="fas fa-link" style="color: var(--blue);"></i> ${fkCount} FK</span>` : ''}
+                        </div>
+                    </div>
+                    <span class="db-row-count"><i class="fas fa-database" style="margin-right: 4px;"></i>${tableInfo.rowCount.toLocaleString()} rows</span>
                 </div>
                 <div class="db-columns-list">
                     ${tableInfo.columns.map(col => `
                         <div class="db-column">
                             <span class="db-column-name">
-                                ${col.pk ? '<i class="fas fa-key" style="color: var(--warning);"></i>' : ''}
-                                ${col.fk ? '<i class="fas fa-link" style="color: var(--blue);"></i>' : ''}
+                                ${col.pk ? '<i class="fas fa-key" style="color: var(--warning);" title="Primary Key"></i>' : ''}
+                                ${col.fk ? '<i class="fas fa-link" style="color: var(--blue);" title="Foreign Key: ' + col.fk + '"></i>' : ''}
                                 ${col.name}
                             </span>
                             <span class="db-column-type">${col.type}</span>
-                            <span class="db-column-nullable">${col.nullable ? 'NULL' : 'NOT NULL'}</span>
+                            <span class="db-column-nullable ${col.nullable ? 'nullable' : 'not-null'}">${col.nullable ? 'NULL' : 'NOT NULL'}</span>
                         </div>
                     `).join('')}
                 </div>
@@ -8246,12 +9419,17 @@ function addCustomAgent() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // EMBY MEDIA SERVER
 // ═══════════════════════════════════════════════════════════════
 const embyConfig = {
-    serverUrl: 'http://192.168.0.217:8096',
+    serverUrl: 'https://media.allstarmediapro.com',
     apiKey: '8cf23d5e47174b8bae3b58e5eb3e6718',
-    connected: false
+    connected: false,
+    viewMode: 'grid',
+    currentView: 'browse',
+    currentLibrary: null,
+    serverInfo: null
 };
 
 // Initialize Emby on page load
@@ -8263,7 +9441,7 @@ function initEmby() {
     if (isHTTPS && embyIsHTTP) {
         // Show mixed content warning
         const warning = document.getElementById('embyMixedContentWarning');
-        if (warning) warning.style.display = 'block';
+        if (warning) warning.style.display = 'flex';
         addTerminalLine('[Emby] Mixed content warning: HTTPS page cannot load HTTP resources');
     }
 
@@ -8273,6 +9451,254 @@ function initEmby() {
             connectEmby();
         }
     }, 1000);
+}
+
+// Toggle media config panel
+function toggleMediaConfig() {
+    const body = document.getElementById('mediaConfigBody');
+    const chevron = document.getElementById('configChevron');
+    if (body) {
+        body.classList.toggle('open');
+        if (chevron) chevron.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+    }
+}
+
+// Switch media view (browse, player, recent)
+function switchMediaView(viewName) {
+    embyConfig.currentView = viewName;
+
+    // Update nav items
+    document.querySelectorAll('.media-nav-item').forEach(item => item.classList.remove('active'));
+    const activeNav = document.querySelector(`.media-nav-item[onclick*="${viewName}"]`);
+    if (activeNav) activeNav.classList.add('active');
+
+    // Update views
+    document.querySelectorAll('.media-view').forEach(view => view.classList.remove('active'));
+    const activeView = document.getElementById(`media-view-${viewName}`);
+    if (activeView) activeView.classList.add('active');
+
+    // Load content for specific views
+    if (viewName === 'recent' && embyConfig.connected) {
+        loadEmbyRecentlyAdded();
+    }
+}
+
+// Update connection status
+function updateConnectionStatus(connected, serverName = '') {
+    const statusEl = document.getElementById('embyConnectionStatus');
+    const statusText = document.getElementById('embyStatusText');
+    const dot = statusEl?.querySelector('.connection-dot');
+
+    if (connected) {
+        if (dot) dot.classList.add('connected');
+        if (statusEl) statusEl.innerHTML = `<div class="connection-dot connected"></div><span>Connected to ${serverName}</span>`;
+        if (statusText) statusText.textContent = 'Online';
+        if (statusText) statusText.style.color = 'var(--success)';
+    } else {
+        if (dot) dot.classList.remove('connected');
+        if (statusEl) statusEl.innerHTML = `<div class="connection-dot"></div><span>Not Connected</span>`;
+        if (statusText) statusText.textContent = 'Offline';
+        if (statusText) statusText.style.color = 'var(--danger)';
+    }
+}
+
+// Load libraries into sidebar navigation
+function loadLibrariesIntoNav(libraries) {
+    const nav = document.getElementById('embyLibraryNav');
+    if (!nav) return;
+
+    nav.innerHTML = libraries.map(lib => `
+        <button class="media-nav-item" onclick="loadEmbyLibrary('${lib.Id}')">
+            <i class="fas ${getLibraryIcon(lib.CollectionType)}"></i>
+            <span>${lib.Name}</span>
+        </button>
+    `).join('');
+}
+
+function getLibraryIcon(collectionType) {
+    const icons = {
+        'movies': 'fa-film',
+        'tvshows': 'fa-tv',
+        'music': 'fa-music',
+        'photos': 'fa-images',
+        'homevideos': 'fa-video',
+        'musicvideos': 'fa-guitar',
+        'boxsets': 'fa-layer-group',
+        'books': 'fa-book'
+    };
+    return icons[collectionType] || 'fa-folder';
+}
+
+// Load recently added
+async function loadEmbyRecentlyAdded() {
+    if (!embyConfig.connected) return;
+
+    const content = document.getElementById('embyRecentContent');
+    content.innerHTML = '<div class="media-placeholder"><i class="fas fa-spinner fa-spin"></i><h3>Loading...</h3></div>';
+
+    try {
+        const response = await fetch(`${embyConfig.serverUrl}/Items/Latest?api_key=${embyConfig.apiKey}&Limit=20&Fields=Overview,MediaSources,RunTimeTicks`);
+        const items = await response.json();
+
+        content.innerHTML = `
+            <div class="media-content-grid">
+                ${items.map(item => renderMediaCard(item)).join('')}
+            </div>
+        `;
+    } catch (e) {
+        content.innerHTML = `<div class="media-placeholder"><i class="fas fa-exclamation-triangle"></i><h3>Error</h3><p>${e.message}</p></div>`;
+    }
+}
+
+// Load favorites
+async function loadEmbyFavorites() {
+    if (!embyConfig.connected) {
+        alert('Please connect to Emby first');
+        return;
+    }
+    switchMediaView('browse');
+    const content = document.getElementById('embyContent');
+    content.innerHTML = '<div class="media-placeholder"><i class="fas fa-spinner fa-spin"></i><h3>Loading Favorites...</h3></div>';
+
+    try {
+        const response = await fetch(`${embyConfig.serverUrl}/Items?api_key=${embyConfig.apiKey}&Filters=IsFavorite&Recursive=true&Fields=Overview,MediaSources,RunTimeTicks&Limit=50`);
+        const data = await response.json();
+
+        if (data.Items.length === 0) {
+            content.innerHTML = '<div class="media-placeholder"><i class="fas fa-heart"></i><h3>No Favorites</h3><p>Mark items as favorites in Emby to see them here</p></div>';
+        } else {
+            content.innerHTML = `<div class="media-content-grid ${embyConfig.viewMode === 'list' ? 'list-view' : ''}">${data.Items.map(item => renderMediaCard(item)).join('')}</div>`;
+        }
+    } catch (e) {
+        content.innerHTML = `<div class="media-placeholder"><i class="fas fa-exclamation-triangle"></i><h3>Error</h3><p>${e.message}</p></div>`;
+    }
+}
+
+// Load continue watching
+async function loadEmbyContinue() {
+    if (!embyConfig.connected) {
+        alert('Please connect to Emby first');
+        return;
+    }
+    switchMediaView('browse');
+    const content = document.getElementById('embyContent');
+    content.innerHTML = '<div class="media-placeholder"><i class="fas fa-spinner fa-spin"></i><h3>Loading Continue Watching...</h3></div>';
+
+    try {
+        const response = await fetch(`${embyConfig.serverUrl}/Items?api_key=${embyConfig.apiKey}&Filters=IsResumable&Recursive=true&Fields=Overview,MediaSources,RunTimeTicks&Limit=20`);
+        const data = await response.json();
+
+        if (data.Items.length === 0) {
+            content.innerHTML = '<div class="media-placeholder"><i class="fas fa-history"></i><h3>Nothing to Continue</h3><p>Start watching something to see it here</p></div>';
+        } else {
+            content.innerHTML = `<div class="media-content-grid ${embyConfig.viewMode === 'list' ? 'list-view' : ''}">${data.Items.map(item => renderMediaCard(item)).join('')}</div>`;
+        }
+    } catch (e) {
+        content.innerHTML = `<div class="media-placeholder"><i class="fas fa-exclamation-triangle"></i><h3>Error</h3><p>${e.message}</p></div>`;
+    }
+}
+
+// Search Emby
+async function searchEmby(event) {
+    if (event.key !== 'Enter') return;
+
+    const query = document.getElementById('embySearchInput')?.value;
+    if (!query || !embyConfig.connected) return;
+
+    const content = document.getElementById('embyContent');
+    content.innerHTML = '<div class="media-placeholder"><i class="fas fa-spinner fa-spin"></i><h3>Searching...</h3></div>';
+
+    try {
+        const response = await fetch(`${embyConfig.serverUrl}/Items?api_key=${embyConfig.apiKey}&SearchTerm=${encodeURIComponent(query)}&Recursive=true&Fields=Overview,MediaSources,RunTimeTicks&Limit=50`);
+        const data = await response.json();
+
+        if (data.Items.length === 0) {
+            content.innerHTML = `<div class="media-placeholder"><i class="fas fa-search"></i><h3>No Results</h3><p>No items found for "${query}"</p></div>`;
+        } else {
+            content.innerHTML = `
+                <div style="margin-bottom: 16px; font-size: 14px; color: var(--text-muted);">Found ${data.Items.length} results for "${query}"</div>
+                <div class="media-content-grid ${embyConfig.viewMode === 'list' ? 'list-view' : ''}">${data.Items.map(item => renderMediaCard(item)).join('')}</div>
+            `;
+        }
+    } catch (e) {
+        content.innerHTML = `<div class="media-placeholder"><i class="fas fa-exclamation-triangle"></i><h3>Search Error</h3><p>${e.message}</p></div>`;
+    }
+}
+
+// Render media card (reusable)
+function renderMediaCard(item) {
+    const runtime = item.RunTimeTicks ? Math.floor(item.RunTimeTicks / 600000000) + 'min' : '';
+    const isFolder = item.IsFolder;
+    const isPlayable = ['Movie', 'Episode', 'Video', 'Audio', 'MusicVideo'].includes(item.Type);
+
+    return `
+        <div class="emby-media-card ${embyConfig.viewMode === 'list' ? 'list-view' : ''}" onclick="${isFolder ? `loadEmbyLibrary('${item.Id}')` : (isPlayable ? `playEmbyVideo('${item.Id}', '${escapeHtml(item.Name)}')` : `playEmbyItem('${item.Id}')`)}">
+            <div class="emby-media-poster">
+                <img src="${embyConfig.serverUrl}/Items/${item.Id}/Images/Primary?api_key=${embyConfig.apiKey}&height=280"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                     alt="${escapeHtml(item.Name)}" loading="lazy">
+                <div class="emby-media-placeholder" style="display: none;"><i class="fas ${isFolder ? 'fa-folder' : 'fa-film'}"></i></div>
+                ${isPlayable ? '<div class="emby-play-overlay"><i class="fas fa-play"></i></div>' : ''}
+                ${runtime ? `<span class="emby-runtime">${runtime}</span>` : ''}
+            </div>
+            <div class="emby-media-info">
+                <div class="emby-media-title">${item.Name}</div>
+                <div class="emby-media-meta">
+                    ${item.ProductionYear ? `<span>${item.ProductionYear}</span>` : ''}
+                    <span class="emby-media-type">${item.Type}</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Play video in embedded player
+function playEmbyVideo(itemId, title) {
+    const isHTTPS = window.location.protocol === 'https:';
+    const embyIsHTTP = embyConfig.serverUrl.startsWith('http://');
+
+    if (isHTTPS && embyIsHTTP) {
+        // Can't embed due to mixed content - open in new tab
+        playEmbyItem(itemId);
+        return;
+    }
+
+    // Switch to player view
+    switchMediaView('player');
+
+    // Update player info
+    document.getElementById('playerNowPlaying').textContent = `Now Playing: ${title}`;
+    document.getElementById('playerTitle').textContent = title;
+
+    // Load video
+    const videoEl = document.getElementById('embyVideoPlayer');
+    const streamUrl = `${embyConfig.serverUrl}/Videos/${itemId}/stream?api_key=${embyConfig.apiKey}&Static=true`;
+
+    videoEl.innerHTML = `<source src="${streamUrl}" type="video/mp4">`;
+    videoEl.load();
+    videoEl.play();
+
+    // Update description
+    fetchItemDetails(itemId);
+}
+
+async function fetchItemDetails(itemId) {
+    try {
+        const response = await fetch(`${embyConfig.serverUrl}/Items/${itemId}?api_key=${embyConfig.apiKey}&Fields=Overview`);
+        const item = await response.json();
+        document.getElementById('playerDescription').textContent = item.Overview || 'No description available.';
+    } catch (e) {
+        console.error('Failed to fetch item details', e);
+    }
+}
+
+function toggleFullscreenPlayer() {
+    const wrapper = document.querySelector('.player-wrapper');
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    } else {
+        wrapper?.requestFullscreen();
+    }
 }
 
 function openLocalDashboard() {
@@ -8300,8 +9726,9 @@ async function testEmbyConnection() {
     const isHTTPS = window.location.protocol === 'https:';
     if (isHTTPS && serverUrl.startsWith('http://')) {
         if (statusEl) {
-            statusEl.innerHTML = `<span style="color: var(--warning);"><i class="fas fa-exclamation-triangle"></i> Mixed Content: Cannot connect to HTTP from HTTPS. <a href="${serverUrl}/web/index.html" target="_blank" style="color: var(--blue);">Open Emby directly</a></span>`;
+            statusEl.innerHTML = `<span style="color: var(--warning);"><i class="fas fa-exclamation-triangle"></i> HTTPS/HTTP conflict - <a href="${serverUrl}/web/index.html" target="_blank" style="color: var(--blue);">Open Emby</a></span>`;
         }
+        updateConnectionStatus(false);
         return;
     }
 
@@ -8309,6 +9736,7 @@ async function testEmbyConnection() {
         const response = await fetch(`${serverUrl}/System/Info?api_key=${apiKey}`);
         if (response.ok) {
             const info = await response.json();
+            embyConfig.serverInfo = info;
             if (statusEl) {
                 statusEl.innerHTML = `<span style="color: var(--success);"><i class="fas fa-check"></i> Connected to ${info.ServerName} v${info.Version}</span>`;
             }
@@ -8319,26 +9747,59 @@ async function testEmbyConnection() {
             if (statusEl) {
                 statusEl.innerHTML = `<span style="color: var(--danger);"><i class="fas fa-times"></i> Connection failed (${response.status})</span>`;
             }
+            embyConfig.connected = false;
         }
     } catch (e) {
         console.error('[Emby]', e);
         if (statusEl) {
             statusEl.innerHTML = `<span style="color: var(--danger);"><i class="fas fa-times"></i> ${e.message}</span>`;
         }
+        embyConfig.connected = false;
     }
 }
 
 async function connectEmby() {
     const serverUrlEl = document.getElementById('embyServerUrl');
     const apiKeyEl = document.getElementById('embyApiKey');
+    const statusEl = document.getElementById('embyStatus');
 
     if (serverUrlEl) embyConfig.serverUrl = serverUrlEl.value;
     if (apiKeyEl) embyConfig.apiKey = apiKeyEl.value;
 
+    // Show connecting status
+    if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting to Emby...';
+    }
+
     await testEmbyConnection();
     if (embyConfig.connected) {
         await loadEmbyLibraries();
+        updateConnectionStatus(true, embyConfig.serverInfo?.ServerName || 'Emby Server');
         addTerminalLine('[Emby] Connected to media server');
+
+        // Collapse config panel after successful connection
+        const body = document.getElementById('mediaConfigBody');
+        if (body) body.classList.remove('open');
+
+        // Show welcome content
+        const content = document.getElementById('embyContent');
+        if (content) {
+            content.innerHTML = `
+                <div class="media-placeholder">
+                    <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                    <h3>Connected to ${embyConfig.serverInfo?.ServerName || 'Emby'}</h3>
+                    <p>Select a library from the sidebar or use the dropdown above to browse your media</p>
+                </div>
+            `;
+        }
+
+        // Hide status after a moment
+        setTimeout(() => {
+            if (statusEl) statusEl.style.display = 'none';
+        }, 2000);
+    } else {
+        updateConnectionStatus(false);
     }
 }
 
@@ -8346,9 +9807,16 @@ async function loadEmbyLibraries() {
     try {
         const response = await fetch(`${embyConfig.serverUrl}/Library/MediaFolders?api_key=${embyConfig.apiKey}`);
         const data = await response.json();
+
+        // Update header dropdown
         const select = document.getElementById('embyLibrarySelect');
-        select.innerHTML = '<option value="">Select Library</option>' +
-            data.Items.map(lib => `<option value="${lib.Id}">${lib.Name}</option>`).join('');
+        if (select) {
+            select.innerHTML = '<option value="">All Libraries</option>' +
+                data.Items.map(lib => `<option value="${lib.Id}">${lib.Name}</option>`).join('');
+        }
+
+        // Update sidebar navigation
+        loadLibrariesIntoNav(data.Items);
     } catch (e) {
         console.error('[Emby] Failed to load libraries', e);
     }
@@ -8356,39 +9824,407 @@ async function loadEmbyLibraries() {
 
 async function loadEmbyLibrary(libraryId) {
     if (!libraryId) return;
+
+    embyConfig.currentLibrary = libraryId;
+    switchMediaView('browse');
+
     const content = document.getElementById('embyContent');
-    content.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 32px;"></i></div>';
+    content.innerHTML = '<div class="media-placeholder"><i class="fas fa-spinner fa-spin"></i><h3>Loading...</h3></div>';
 
     try {
-        const response = await fetch(`${embyConfig.serverUrl}/Items?ParentId=${libraryId}&api_key=${embyConfig.apiKey}&Limit=50`);
+        const response = await fetch(`${embyConfig.serverUrl}/Items?ParentId=${libraryId}&api_key=${embyConfig.apiKey}&Limit=100&Fields=Overview,MediaSources,RunTimeTicks`);
         const data = await response.json();
 
-        content.innerHTML = `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px;">
-            ${data.Items.map(item => `
-                <div class="media-card" onclick="playEmbyItem('${item.Id}')" style="cursor: pointer;">
-                    <img src="${embyConfig.serverUrl}/Items/${item.Id}/Images/Primary?api_key=${embyConfig.apiKey}&height=200"
-                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 150%22><rect fill=%22%23333%22 width=%22100%22 height=%22150%22/><text x=%2250%22 y=%2275%22 text-anchor=%22middle%22 fill=%22%23666%22>No Image</text></svg>'"
-                         style="width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px;">
-                    <div style="padding: 8px 0;">
-                        <div style="font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.Name}</div>
-                        <div style="font-size: 10px; color: var(--text-muted);">${item.ProductionYear || item.Type}</div>
-                    </div>
+        if (data.Items.length === 0) {
+            content.innerHTML = '<div class="media-placeholder"><i class="fas fa-folder-open"></i><h3>Empty Library</h3><p>No items found in this library</p></div>';
+        } else {
+            content.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+                    <span style="font-size: 14px; color: var(--text-secondary);">${data.TotalRecordCount || data.Items.length} items</span>
+                    <button class="btn btn-sm" onclick="loadEmbyLibrary('')" style="opacity: 0.7;"><i class="fas fa-arrow-left"></i> Back</button>
                 </div>
-            `).join('')}
-        </div>`;
+                <div class="media-content-grid ${embyConfig.viewMode === 'list' ? 'list-view' : ''}">
+                    ${data.Items.map(item => renderMediaCard(item)).join('')}
+                </div>
+            `;
+        }
     } catch (e) {
-        content.innerHTML = `<div style="color: var(--danger); padding: 20px;"><i class="fas fa-exclamation-triangle"></i> Failed to load library</div>`;
+        console.error('[Emby] Load library error:', e);
+        content.innerHTML = `<div class="media-placeholder"><i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i><h3>Error Loading Library</h3><p>${e.message}</p></div>`;
     }
+}
+
+// View mode toggle
+function setEmbyViewMode(mode) {
+    embyConfig.viewMode = mode;
+
+    // Update toggle buttons
+    const gridBtn = document.getElementById('gridViewBtn');
+    const listBtn = document.getElementById('listViewBtn');
+    if (gridBtn) gridBtn.classList.toggle('active', mode === 'grid');
+    if (listBtn) listBtn.classList.toggle('active', mode === 'list');
+
+    // Update grid class
+    const grids = document.querySelectorAll('.media-content-grid');
+    grids.forEach(grid => {
+        grid.classList.toggle('list-view', mode === 'list');
+    });
+
+    // Update card classes
+    const cards = document.querySelectorAll('.emby-media-card');
+    cards.forEach(card => {
+        card.classList.toggle('list-view', mode === 'list');
+    });
+}
+
+function refreshEmbyLibrary() {
+    if (embyConfig.currentLibrary) {
+        loadEmbyLibrary(embyConfig.currentLibrary);
+    } else if (embyConfig.connected) {
+        loadEmbyLibraries();
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML.replace(/'/g, "\\'");
 }
 
 function playEmbyItem(itemId) {
     window.open(`${embyConfig.serverUrl}/web/index.html#!/item?id=${itemId}`, '_blank');
 }
 
+// Show embedded player modal
+function showEmbyPlayer(itemId, title) {
+    const isHTTPS = window.location.protocol === 'https:';
+    const embyIsHTTP = embyConfig.serverUrl.startsWith('http://');
+
+    if (isHTTPS && embyIsHTTP) {
+        // Can't embed due to mixed content - open in new tab
+        playEmbyItem(itemId);
+        return;
+    }
+
+    showModal('embyPlayer', `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="font-size: 16px;">${title}</h3>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-sm btn-secondary" onclick="playEmbyItem('${itemId}')"><i class="fas fa-external-link-alt"></i> Open in Emby</button>
+            </div>
+        </div>
+        <div style="position: relative; width: 100%; padding-top: 56.25%; background: #000; border-radius: 8px; overflow: hidden;">
+            <video id="embyVideoPlayer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" controls autoplay>
+                <source src="${embyConfig.serverUrl}/Videos/${itemId}/stream?api_key=${embyConfig.apiKey}&Static=true" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding: 12px; background: var(--bg-input); border-radius: 8px;">
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <button class="btn btn-sm" onclick="document.getElementById('embyVideoPlayer').playbackRate -= 0.25">-0.25x</button>
+                <span style="font-size: 12px;">Speed</span>
+                <button class="btn btn-sm" onclick="document.getElementById('embyVideoPlayer').playbackRate += 0.25">+0.25x</button>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-sm" onclick="document.getElementById('embyVideoPlayer').currentTime -= 10"><i class="fas fa-backward"></i> 10s</button>
+                <button class="btn btn-sm" onclick="document.getElementById('embyVideoPlayer').currentTime += 10">10s <i class="fas fa-forward"></i></button>
+            </div>
+        </div>
+    `);
+}
+
 function refreshEmbyLibrary() {
     const select = document.getElementById('embyLibrarySelect');
     if (select.value) loadEmbyLibrary(select.value);
 }
+
+// ═══════════════════════════════════════════════════════════════
+// NETFLIX-STYLE MEDIA DASHBOARD (Emby Integration)
+// ═══════════════════════════════════════════════════════════════
+// Emby server config - change URL based on your setup
+const EMBY_SERVER = window.location.protocol === 'https:'
+    ? 'https://media.allstarmediapro.com'  // HTTPS via Cloudflare Tunnel
+    : 'http://192.168.0.217:8096';          // Local HTTP access
+const EMBY_API_KEY = '8cf23d5e47174b8bae3b58e5eb3e6718';
+let embyItems = [];
+let featuredMedia = null;
+let embyUserId = null;
+
+// Initialize Netflix-style media dashboard
+function initMediaSource() {
+    loadEmbyDashboard();
+    addTerminalLine('[Media] Netflix-style Emby dashboard initialized');
+}
+
+async function loadEmbyDashboard() {
+    const heroTitle = document.getElementById('heroTitle');
+    const heroDesc = document.getElementById('heroDescription');
+
+    // Update hero with loading state
+    if (heroTitle) heroTitle.textContent = 'Loading Emby Library...';
+    if (heroDesc) heroDesc.textContent = 'Connecting to media server...';
+
+    try {
+        // First get server info
+        const infoRes = await fetch(`${EMBY_SERVER}/System/Info/Public`);
+        if (!infoRes.ok) throw new Error('Cannot connect to Emby');
+
+        const serverInfo = await infoRes.json();
+        addTerminalLine(`[Emby] Connected to ${serverInfo.ServerName} v${serverInfo.Version}`);
+
+        // Get libraries
+        const libRes = await fetch(`${EMBY_SERVER}/Library/MediaFolders?api_key=${EMBY_API_KEY}`);
+        const libData = await libRes.json();
+
+        // Get recent items from all libraries
+        const recentRes = await fetch(`${EMBY_SERVER}/Items/Latest?api_key=${EMBY_API_KEY}&Limit=30&Fields=Overview,MediaSources,RunTimeTicks`);
+        const recentItems = await recentRes.json();
+
+        embyItems = recentItems || [];
+        renderEmbyDashboard(embyItems, libData.Items || []);
+
+    } catch (error) {
+        console.error('Emby connection failed:', error);
+        addTerminalLine(`[Emby] Connection failed: ${error.message}`);
+
+        // Show error state
+        if (heroTitle) heroTitle.textContent = 'Emby Connection Failed';
+        if (heroDesc) heroDesc.textContent = 'Check server URL and API key in settings';
+
+        // Show empty dashboard with connect option
+        renderEmbyDashboard([], []);
+    }
+}
+
+function renderEmbyDashboard(items, libraries) {
+    // Update Hero section with featured item
+    if (items.length > 0) {
+        featuredMedia = items[0];
+        const heroTitle = document.getElementById('heroTitle');
+        const heroDesc = document.getElementById('heroDescription');
+        const hero = document.getElementById('netflixHero');
+
+        if (heroTitle) heroTitle.textContent = featuredMedia.Name || 'Featured Media';
+        if (heroDesc) heroDesc.textContent = featuredMedia.Overview?.substring(0, 200) || `${featuredMedia.Type} • ${formatRuntime(featuredMedia.RunTimeTicks)}`;
+
+        // Set hero background
+        if (hero && featuredMedia.Id) {
+            hero.style.backgroundImage = `url(${EMBY_SERVER}/Items/${featuredMedia.Id}/Images/Backdrop?api_key=${EMBY_API_KEY}&maxWidth=1200)`;
+            hero.style.backgroundSize = 'cover';
+            hero.style.backgroundPosition = 'center';
+        }
+    }
+
+    // Render Movies row
+    const movies = items.filter(i => i.Type === 'Movie');
+    renderEmbyRow('myLibrary', movies, 'Movies');
+
+    // Render TV Shows / Series
+    const shows = items.filter(i => i.Type === 'Series' || i.Type === 'Episode');
+    renderEmbyRow('recentlyAdded', shows.length > 0 ? shows : items.slice(0, 10), 'TV Shows');
+
+    // Render Continue Watching
+    renderEmbyRow('continueWatching', items.slice(0, 5), 'Continue Watching', true);
+
+    // Render sidebars
+    renderEmbySidebar('popularList', items.slice(0, 4));
+    renderEmbySidebar('favoritesList', items.slice(4, 7));
+
+    addTerminalLine(`[Emby] Loaded ${items.length} media items`);
+}
+
+function renderEmbyRow(containerId, items, title, wide = false) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (items.length > 0) {
+        container.innerHTML = items.map(item => wide ? renderEmbyCardWide(item) : renderEmbyCard(item)).join('');
+    } else {
+        container.innerHTML = `<p style="color: #6b7280; padding: 20px;">No ${title.toLowerCase()} available</p>`;
+    }
+}
+
+function renderEmbyCard(item) {
+    const title = (item.Name || 'Untitled').substring(0, 30);
+    const imageUrl = `${EMBY_SERVER}/Items/${item.Id}/Images/Primary?api_key=${EMBY_API_KEY}&height=280`;
+    const runtime = formatRuntime(item.RunTimeTicks);
+
+    return `
+        <div class="netflix-card" onclick="playEmbyMedia('${item.Id}', '${escapeHtml(item.Name)}')">
+            <div class="netflix-card-poster">
+                <img src="${imageUrl}" alt="${escapeHtml(title)}" onerror="this.parentElement.innerHTML='<div class=\\'poster-placeholder\\'><i class=\\'fas fa-film\\'></i></div>'">
+                <div class="netflix-card-overlay"><i class="fas fa-play"></i></div>
+            </div>
+            <div class="netflix-card-info">
+                <div class="netflix-card-title">${escapeHtml(title)}</div>
+                <div class="netflix-card-meta">
+                    <span class="netflix-card-rating">${item.Type || 'Media'}</span>
+                    ${runtime ? `<span style="color:#6b7280;font-size:11px;">${runtime}</span>` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderEmbyCardWide(item) {
+    const title = (item.Name || 'Untitled').substring(0, 40);
+    const imageUrl = `${EMBY_SERVER}/Items/${item.Id}/Images/Backdrop?api_key=${EMBY_API_KEY}&maxWidth=400`;
+    const progress = item.UserData?.PlayedPercentage || Math.floor(Math.random() * 70) + 10;
+
+    return `
+        <div class="netflix-card netflix-card-wide" onclick="playEmbyMedia('${item.Id}', '${escapeHtml(item.Name)}')">
+            <div class="netflix-card-poster">
+                <img src="${imageUrl}" alt="${escapeHtml(title)}" onerror="this.src='${EMBY_SERVER}/Items/${item.Id}/Images/Primary?api_key=${EMBY_API_KEY}&height=200'">
+                <div class="netflix-card-overlay"><i class="fas fa-play"></i></div>
+                <div class="netflix-card-progress"><div class="netflix-card-progress-bar" style="width: ${progress}%"></div></div>
+            </div>
+            <div class="netflix-card-info">
+                <div class="netflix-card-title">${escapeHtml(title)}</div>
+            </div>
+        </div>
+    `;
+}
+
+function renderEmbySidebar(containerId, items) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (items.length > 0) {
+        container.innerHTML = items.map(item => {
+            const imageUrl = `${EMBY_SERVER}/Items/${item.Id}/Images/Primary?api_key=${EMBY_API_KEY}&height=80`;
+            return `
+                <div class="netflix-list-item" onclick="playEmbyMedia('${item.Id}', '${escapeHtml(item.Name)}')">
+                    <img src="${imageUrl}" alt="${escapeHtml(item.Name)}" onerror="this.outerHTML='<div class=\\'placeholder-img\\'><i class=\\'fas fa-film\\'></i></div>'">
+                    <div class="netflix-list-item-info">
+                        <div class="netflix-list-item-title">${escapeHtml((item.Name || '').substring(0, 20))}</div>
+                        <div class="netflix-list-item-genre">${item.Type || 'Media'}</div>
+                    </div>
+                    <span class="netflix-list-item-rating">${item.CommunityRating ? item.CommunityRating.toFixed(1) : 'N/A'}</span>
+                </div>
+            `;
+        }).join('');
+    } else {
+        container.innerHTML = '<p style="color: #6b7280; font-size: 12px;">No items</p>';
+    }
+}
+
+function playEmbyMedia(itemId, title) {
+    const streamUrl = `${EMBY_SERVER}/Videos/${itemId}/stream?api_key=${EMBY_API_KEY}&Static=true`;
+    const modal = document.getElementById('netflixPlayerModal');
+    const video = document.getElementById('netflixVideoPlayer');
+    const playerTitle = document.getElementById('playerTitle');
+    const playerDesc = document.getElementById('playerDescription');
+
+    if (modal) modal.style.display = 'flex';
+    if (playerTitle) playerTitle.textContent = title;
+    if (playerDesc) playerDesc.textContent = 'Playing from Emby Server';
+
+    if (video) {
+        video.src = streamUrl;
+        video.load();
+        video.play().catch(e => {
+            console.log('Autoplay prevented:', e);
+            // Open in new tab as fallback
+            window.open(`${EMBY_SERVER}/web/index.html#!/item?id=${itemId}`, '_blank');
+        });
+    }
+
+    addTerminalLine(`[Emby] Playing: ${title}`);
+    showToast(`Playing: ${title}`, 'success');
+}
+
+function playFeaturedMedia() {
+    if (featuredMedia && featuredMedia.Id) {
+        playEmbyMedia(featuredMedia.Id, featuredMedia.Name || 'Featured');
+    } else {
+        showToast('No featured media available', 'info');
+    }
+}
+
+function formatRuntime(ticks) {
+    if (!ticks) return '';
+    const minutes = Math.floor(ticks / 600000000);
+    if (minutes >= 60) {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        return `${hours}h ${mins}m`;
+    }
+    return `${minutes}m`;
+}
+
+function closeNetflixPlayer() {
+    const modal = document.getElementById('netflixPlayerModal');
+    const video = document.getElementById('netflixVideoPlayer');
+
+    if (video) {
+        video.pause();
+        video.src = '';
+    }
+    if (modal) modal.style.display = 'none';
+}
+
+function scrollNetflixRow(rowId, direction) {
+    const row = document.getElementById(rowId);
+    if (row) {
+        const scrollAmount = 300 * direction;
+        row.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+}
+
+function switchNetflixView(view) {
+    document.querySelectorAll('.netflix-nav-item').forEach(item => item.classList.remove('active'));
+    event?.target?.closest('.netflix-nav-item')?.classList.add('active');
+
+    if (view === 'home') loadEmbyDashboard();
+    if (view === 'movies') filterEmbyContent('Movie');
+    if (view === 'tvshows') filterEmbyContent('Series');
+}
+
+function filterNetflixContent(type) {
+    document.querySelectorAll('.netflix-tab').forEach(tab => tab.classList.remove('active'));
+    event?.target?.classList.add('active');
+
+    if (type === 'all') {
+        renderEmbyDashboard(embyItems, []);
+    } else {
+        filterEmbyContent(type === 'movies' ? 'Movie' : (type === 'tvshows' ? 'Series' : type));
+    }
+}
+
+function filterEmbyContent(type) {
+    const filtered = embyItems.filter(item => item.Type === type || type === 'all');
+    renderEmbyDashboard(filtered.length > 0 ? filtered : embyItems, []);
+    addTerminalLine(`[Emby] Filter: ${type} (${filtered.length} results)`);
+}
+
+async function searchNetflixContent(event) {
+    if (event.key === 'Enter') {
+        const query = event.target.value;
+        if (!query) {
+            loadEmbyDashboard();
+            return;
+        }
+
+        try {
+            const res = await fetch(`${EMBY_SERVER}/Items?api_key=${EMBY_API_KEY}&SearchTerm=${encodeURIComponent(query)}&Recursive=true&Limit=30&Fields=Overview,MediaSources,RunTimeTicks`);
+            const data = await res.json();
+            renderEmbyDashboard(data.Items || [], []);
+            addTerminalLine(`[Emby] Search: ${query} (${data.Items?.length || 0} results)`);
+        } catch (error) {
+            showToast('Search failed', 'error');
+        }
+    }
+}
+
+function toggleNetflixSettings() {
+    const modal = document.getElementById('netflixSettingsModal');
+    if (modal) {
+        modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
+    }
+}
+
+function loadNetflixRecent() { loadEmbyDashboard(); }
+function loadNetflixFavorites() { loadEmbyDashboard(); }
 
 // ═══════════════════════════════════════════════════════════════
 // EMAIL SMTP CONFIGURATION

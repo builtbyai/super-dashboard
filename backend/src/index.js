@@ -423,6 +423,142 @@ export default {
       }
 
       // ═══════════════════════════════════════════════════════════════
+      // MEDIA API (Streaming with Range Support)
+      // ═══════════════════════════════════════════════════════════════
+      if (path === '/api/media' && method === 'GET') {
+        // Get all media files (video/audio)
+        const { results } = await env.DB.prepare(`
+          SELECT * FROM files
+          WHERE mime_type LIKE 'video/%' OR mime_type LIKE 'audio/%'
+          ORDER BY created_at DESC
+        `).all();
+        return json({ success: true, data: results || [] }, corsHeaders);
+      }
+
+      if (path === '/api/media/upload' && method === 'POST') {
+        const formData = await request.formData();
+        const file = formData.get('file');
+        const title = formData.get('title') || file?.name;
+        const thumbnail = formData.get('thumbnail');
+
+        if (!file) {
+          return json({ success: false, error: 'No file provided' }, corsHeaders, 400);
+        }
+
+        // Only allow video/audio
+        if (!file.type.startsWith('video/') && !file.type.startsWith('audio/')) {
+          return json({ success: false, error: 'Only video/audio files allowed' }, corsHeaders, 400);
+        }
+
+        const r2Key = `media/${Date.now()}-${file.name}`;
+        await env.R2.put(r2Key, file.stream(), {
+          httpMetadata: { contentType: file.type }
+        });
+
+        // Upload thumbnail if provided
+        let thumbnailKey = null;
+        if (thumbnail) {
+          thumbnailKey = `thumbnails/${Date.now()}-thumb.jpg`;
+          await env.R2.put(thumbnailKey, thumbnail.stream(), {
+            httpMetadata: { contentType: 'image/jpeg' }
+          });
+        }
+
+        const result = await env.DB.prepare(
+          `INSERT INTO files (filename, original_name, mime_type, size, r2_key, folder)
+           VALUES (?, ?, ?, ?, ?, 'media')`
+        ).bind(title, file.name, file.type, file.size, r2Key).run();
+
+        return json({
+          success: true,
+          data: {
+            id: result.meta.last_row_id,
+            r2_key: r2Key,
+            filename: title,
+            mime_type: file.type,
+            size: file.size
+          }
+        }, corsHeaders);
+      }
+
+      // Stream media with byte-range support (for video seeking)
+      if (path.startsWith('/api/media/stream/')) {
+        const fileId = path.split('/')[4];
+        const file = await env.DB.prepare('SELECT * FROM files WHERE id = ?').bind(fileId).first();
+
+        if (!file) {
+          return json({ success: false, error: 'Media not found' }, corsHeaders, 404);
+        }
+
+        const r2Object = await env.R2.get(file.r2_key);
+        if (!r2Object) {
+          return json({ success: false, error: 'Media file not found in storage' }, corsHeaders, 404);
+        }
+
+        const rangeHeader = request.headers.get('Range');
+        const contentLength = r2Object.size;
+
+        // Handle Range requests for video seeking
+        if (rangeHeader) {
+          const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+          if (match) {
+            const start = parseInt(match[1], 10);
+            const end = match[2] ? parseInt(match[2], 10) : contentLength - 1;
+            const chunkSize = end - start + 1;
+
+            // Get ranged data from R2
+            const rangedObject = await env.R2.get(file.r2_key, {
+              range: { offset: start, length: chunkSize }
+            });
+
+            return new Response(rangedObject.body, {
+              status: 206,
+              headers: {
+                'Content-Type': file.mime_type || 'video/mp4',
+                'Content-Length': chunkSize.toString(),
+                'Content-Range': `bytes ${start}-${end}/${contentLength}`,
+                'Accept-Ranges': 'bytes',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Expose-Headers': 'Content-Range, Content-Length, Accept-Ranges'
+              }
+            });
+          }
+        }
+
+        // Full file response
+        return new Response(r2Object.body, {
+          headers: {
+            'Content-Type': file.mime_type || 'video/mp4',
+            'Content-Length': contentLength.toString(),
+            'Accept-Ranges': 'bytes',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Expose-Headers': 'Content-Range, Content-Length, Accept-Ranges'
+          }
+        });
+      }
+
+      // Get media info
+      if (path.match(/^\/api\/media\/\d+$/) && method === 'GET') {
+        const id = path.split('/')[3];
+        const file = await env.DB.prepare('SELECT * FROM files WHERE id = ?').bind(id).first();
+        if (!file) {
+          return json({ success: false, error: 'Media not found' }, corsHeaders, 404);
+        }
+        return json({ success: true, data: file }, corsHeaders);
+      }
+
+      // Delete media
+      if (path.match(/^\/api\/media\/\d+$/) && method === 'DELETE') {
+        const id = path.split('/')[3];
+        const file = await env.DB.prepare('SELECT r2_key FROM files WHERE id = ?').bind(id).first();
+        if (file) {
+          await env.R2.delete(file.r2_key);
+          await env.DB.prepare('DELETE FROM files WHERE id = ?').bind(id).run();
+        }
+        return json({ success: true, message: 'Media deleted' }, corsHeaders);
+      }
+
+      // ═══════════════════════════════════════════════════════════════
       // ANALYTICS API
       // ═══════════════════════════════════════════════════════════════
       if (path === '/api/analytics/summary' && method === 'GET') {
