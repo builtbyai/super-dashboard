@@ -13569,7 +13569,7 @@ function renderEmbyRow(containerId, items, title, wide = false) {
 
 function renderEmbyCard(item) {
     const title = (item.Name || 'Untitled').substring(0, 30);
-    const imageUrl = `${EMBY_SERVER}/Items/${item.Id}/Images/Primary?api_key=${EMBY_API_KEY}&height=280`;
+    const imageUrl = `${EMBY_SERVER}/Items/${item.Id}/Images/Primary?api_key=${EMBY_API_KEY}&height=240&quality=70`;
     const runtime = formatRuntime(item.RunTimeTicks);
     const year = item.ProductionYear || '';
     const rating = item.CommunityRating ? item.CommunityRating.toFixed(1) : '';
@@ -13622,7 +13622,7 @@ async function showMediaInfo(itemId) {
 function renderEmbyCardWide(item) {
     const title = (item.Name || 'Untitled').substring(0, 40);
     // Use Primary image for wide cards - more reliable than Backdrop
-    const imageUrl = `${EMBY_SERVER}/Items/${item.Id}/Images/Primary?api_key=${EMBY_API_KEY}&maxWidth=400&quality=90`;
+    const imageUrl = `${EMBY_SERVER}/Items/${item.Id}/Images/Primary?api_key=${EMBY_API_KEY}&maxWidth=320&quality=70`;
     const progress = item.UserData?.PlayedPercentage || 0;
     const year = item.ProductionYear || '';
     const runtime = formatRuntime(item.RunTimeTicks);
@@ -13785,21 +13785,27 @@ async function showMediaDetail(itemId) {
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
 
+    // Pre-load images immediately (browser will cache them)
+    const backdropUrl = `${EMBY_SERVER}/Items/${itemId}/Images/Backdrop?api_key=${EMBY_API_KEY}&maxWidth=1280&quality=80`;
+    const primaryUrl = `${EMBY_SERVER}/Items/${itemId}/Images/Primary?api_key=${EMBY_API_KEY}&maxWidth=1280&quality=80`;
+    const posterUrl = `${EMBY_SERVER}/Items/${itemId}/Images/Primary?api_key=${EMBY_API_KEY}&height=400&quality=80`;
+
+    // Set backdrop immediately with both URLs (loads in parallel)
+    const backdrop = document.getElementById('mediaDetailBackdrop');
+    backdrop.style.backgroundImage = `url('${backdropUrl}'), url('${primaryUrl}')`;
+
     try {
-        // Fetch detailed item info including People, Genres, Studios
-        const res = await fetch(`${EMBY_SERVER}/Users/${embyUserId}/Items/${itemId}?api_key=${EMBY_API_KEY}&Fields=Overview,People,Genres,Studios,Tags,ProductionYear,OfficialRating,CommunityRating,RunTimeTicks,PremiereDate,Taglines`);
-        const item = await res.json();
+        // PARALLEL FETCH: Load item details AND similar items at the same time
+        const [itemRes, similarRes] = await Promise.all([
+            fetch(`${EMBY_SERVER}/Users/${embyUserId}/Items/${itemId}?api_key=${EMBY_API_KEY}&Fields=Overview,People,Genres,Studios,ProductionYear,OfficialRating,CommunityRating,RunTimeTicks,PremiereDate,Taglines`),
+            fetch(`${EMBY_SERVER}/Items/${itemId}/Similar?api_key=${EMBY_API_KEY}&UserId=${embyUserId}&Limit=8&Fields=CommunityRating,ProductionYear`)
+        ]);
+
+        const item = await itemRes.json();
         currentDetailItem = item;
 
-        // Set backdrop image
-        const backdrop = document.getElementById('mediaDetailBackdrop');
-        const backdropUrl = `${EMBY_SERVER}/Items/${itemId}/Images/Backdrop?api_key=${EMBY_API_KEY}&maxWidth=1920&quality=90`;
-        const primaryUrl = `${EMBY_SERVER}/Items/${itemId}/Images/Primary?api_key=${EMBY_API_KEY}&maxWidth=1920&quality=90`;
-        backdrop.style.backgroundImage = `url('${backdropUrl}'), url('${primaryUrl}')`;
-
-        // Set poster
+        // Set poster (already pre-loaded above)
         const posterEl = document.getElementById('mediaDetailPoster');
-        const posterUrl = `${EMBY_SERVER}/Items/${itemId}/Images/Primary?api_key=${EMBY_API_KEY}&height=420&quality=90`;
         posterEl.innerHTML = `<img src="${posterUrl}" alt="${escapeHtml(item.Name)}" onerror="this.parentElement.innerHTML='<div class=\\'poster-placeholder\\'><i class=\\'fas fa-film\\'></i></div>'">`;
 
         // Set title and tagline
@@ -13808,45 +13814,44 @@ async function showMediaDetail(itemId) {
         taglineEl.textContent = item.Taglines?.[0] || '';
         taglineEl.style.display = item.Taglines?.[0] ? 'block' : 'none';
 
-        // Set meta info
+        // Set meta info (all synchronous, fast)
         const ratingEl = document.getElementById('mediaDetailRating');
         ratingEl.querySelector('span').textContent = item.CommunityRating ? item.CommunityRating.toFixed(1) : 'N/A';
         document.getElementById('mediaDetailYear').textContent = item.ProductionYear || '';
         document.getElementById('mediaDetailRuntime').textContent = formatRuntime(item.RunTimeTicks);
+        document.getElementById('mediaDetailStudio').textContent = item.Studios?.map(s => s.Name).join(', ') || '-';
+        document.getElementById('mediaDetailDirector').textContent = item.People?.find(p => p.Type === 'Director')?.Name || '-';
+        document.getElementById('mediaDetailDate').textContent = item.PremiereDate ? new Date(item.PremiereDate).toLocaleDateString() : '-';
+        document.getElementById('mediaDetailContentRating').textContent = item.OfficialRating || '-';
 
         // Set genres
         const genresEl = document.getElementById('mediaDetailGenres');
-        if (item.Genres?.length > 0) {
-            genresEl.innerHTML = item.Genres.map(g => `<span class="media-detail-genre" onclick="filterByGenreAndClose('${g}')">${g}</span>`).join('');
-        } else {
-            genresEl.innerHTML = '';
-        }
+        genresEl.innerHTML = item.Genres?.length > 0
+            ? item.Genres.map(g => `<span class="media-detail-genre" onclick="filterByGenreAndClose('${g}')">${g}</span>`).join('')
+            : '';
 
         // Set overview
         document.getElementById('mediaDetailOverview').textContent = item.Overview || 'No description available.';
 
-        // Set play button
+        // Set buttons
         const playBtn = document.getElementById('mediaDetailPlayBtn');
         if (playBtn) playBtn.onclick = () => { closeMediaDetail(); playEmbyMedia(itemId, item.Name); };
-
-        // Set Emby button
         const embyBtn = document.getElementById('mediaDetailEmbyBtn');
         if (embyBtn) embyBtn.onclick = () => openInEmbyDirect(itemId);
 
-        // Set extra info
-        document.getElementById('mediaDetailStudio').textContent = item.Studios?.map(s => s.Name).join(', ') || '-';
-        const director = item.People?.find(p => p.Type === 'Director');
-        document.getElementById('mediaDetailDirector').textContent = director?.Name || '-';
-        document.getElementById('mediaDetailDate').textContent = item.PremiereDate ? new Date(item.PremiereDate).toLocaleDateString() : '-';
-        document.getElementById('mediaDetailContentRating').textContent = item.OfficialRating || '-';
-
-        // Load cast
+        // Load cast immediately (data already in item)
         loadCastInfo(item);
 
-        // Load similar items
-        loadSimilarItems(itemId, item.Type);
+        // Process similar items (already fetched in parallel)
+        const similarData = await similarRes.json();
+        const similarGrid = document.getElementById('mediaDetailSimilar');
+        if (similarData.Items?.length > 0) {
+            similarGrid.innerHTML = similarData.Items.map(item => renderEmbyCard(item)).join('');
+        } else {
+            similarGrid.innerHTML = '<div style="color: #6b7280; padding: 20px;">No recommendations available</div>';
+        }
 
-        // Load collection/series items if applicable
+        // Load series episodes in background (non-blocking)
         if (item.SeriesId) {
             loadSeriesEpisodes(item.SeriesId, item.SeriesName);
         } else {
@@ -13866,20 +13871,21 @@ function loadCastInfo(item) {
         return;
     }
 
-    // Filter and show actors first, then other crew
-    const cast = item.People.filter(p => p.Type === 'Actor').slice(0, 15);
-    const crew = item.People.filter(p => p.Type !== 'Actor').slice(0, 5);
-    const allPeople = [...cast, ...crew];
+    // Filter: actors first (limit 10), then director only
+    const cast = item.People.filter(p => p.Type === 'Actor').slice(0, 10);
+    const director = item.People.find(p => p.Type === 'Director');
+    const allPeople = director ? [...cast, director] : cast;
 
+    // Use smaller images + lazy loading for speed
     castGrid.innerHTML = allPeople.map(person => {
         const photoUrl = person.PrimaryImageTag
-            ? `${EMBY_SERVER}/Items/${person.Id}/Images/Primary?api_key=${EMBY_API_KEY}&height=200&quality=90`
+            ? `${EMBY_SERVER}/Items/${person.Id}/Images/Primary?api_key=${EMBY_API_KEY}&height=120&quality=70`
             : null;
         return `
             <div class="media-cast-card" onclick="searchByActor('${escapeHtml(person.Name)}')">
                 <div class="media-cast-photo">
                     ${photoUrl
-                        ? `<img src="${photoUrl}" alt="${escapeHtml(person.Name)}" onerror="this.parentElement.innerHTML='<div class=\\'no-photo\\'><i class=\\'fas fa-user\\'></i></div>'">`
+                        ? `<img src="${photoUrl}" alt="${escapeHtml(person.Name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-photo\\'><i class=\\'fas fa-user\\'></i></div>'">`
                         : `<div class="no-photo"><i class="fas fa-user"></i></div>`
                     }
                 </div>
@@ -13890,24 +13896,17 @@ function loadCastInfo(item) {
     }).join('');
 }
 
+// Fallback function - only called if parallel fetch fails
 async function loadSimilarItems(itemId, itemType) {
     const similarGrid = document.getElementById('mediaDetailSimilar');
     try {
-        // Get similar items based on genres
-        const res = await fetch(`${EMBY_SERVER}/Items/${itemId}/Similar?api_key=${EMBY_API_KEY}&UserId=${embyUserId}&Limit=12&Fields=Overview,CommunityRating,ProductionYear`);
+        // Simpler fallback: just get top-rated items of same type (faster)
+        const res = await fetch(`${EMBY_SERVER}/Users/${embyUserId}/Items?api_key=${EMBY_API_KEY}&IncludeItemTypes=${itemType}&Recursive=true&Limit=8&SortBy=CommunityRating&SortOrder=Descending&Fields=CommunityRating,ProductionYear`);
         const data = await res.json();
-
-        if (data.Items && data.Items.length > 0) {
+        if (data.Items?.length > 0) {
             similarGrid.innerHTML = data.Items.map(item => renderEmbyCard(item)).join('');
         } else {
-            // Fallback: get items of same type sorted by rating
-            const fallbackRes = await fetch(`${EMBY_SERVER}/Users/${embyUserId}/Items?api_key=${EMBY_API_KEY}&IncludeItemTypes=${itemType}&Recursive=true&Limit=12&SortBy=CommunityRating&SortOrder=Descending&Fields=Overview,CommunityRating,ProductionYear`);
-            const fallbackData = await fallbackRes.json();
-            if (fallbackData.Items?.length > 0) {
-                similarGrid.innerHTML = fallbackData.Items.map(item => renderEmbyCard(item)).join('');
-            } else {
-                similarGrid.innerHTML = '<div style="color: #6b7280; padding: 20px;">No recommendations available</div>';
-            }
+            similarGrid.innerHTML = '<div style="color: #6b7280; padding: 20px;">No recommendations available</div>';
         }
     } catch (e) {
         console.error('Error loading similar items:', e);
