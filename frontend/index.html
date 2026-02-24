@@ -10108,12 +10108,25 @@ async function loadEmbyDashboard() {
         const libRes = await fetch(`${EMBY_SERVER}/Library/MediaFolders?api_key=${EMBY_API_KEY}`);
         const libData = await libRes.json();
 
-        // Get recent items - use user-specific endpoint
-        const recentRes = await fetch(`${EMBY_SERVER}/Users/${embyUserId}/Items/Latest?api_key=${EMBY_API_KEY}&Limit=30&Fields=Overview,MediaSources,RunTimeTicks`);
+        // Fetch Movies and TV Shows separately for better display
+        const [moviesRes, showsRes, recentRes] = await Promise.all([
+            fetch(`${EMBY_SERVER}/Users/${embyUserId}/Items?api_key=${EMBY_API_KEY}&IncludeItemTypes=Movie&Recursive=true&Limit=50&Fields=Overview,RunTimeTicks,CommunityRating,ProductionYear&SortBy=DateCreated&SortOrder=Descending`),
+            fetch(`${EMBY_SERVER}/Users/${embyUserId}/Items?api_key=${EMBY_API_KEY}&IncludeItemTypes=Series&Recursive=true&Limit=30&Fields=Overview,RunTimeTicks,CommunityRating,ProductionYear&SortBy=DateCreated&SortOrder=Descending`),
+            fetch(`${EMBY_SERVER}/Users/${embyUserId}/Items/Latest?api_key=${EMBY_API_KEY}&Limit=20&Fields=Overview,RunTimeTicks`)
+        ]);
+
+        const moviesData = await moviesRes.json();
+        const showsData = await showsRes.json();
         const recentItems = await recentRes.json();
 
-        embyItems = recentItems || [];
-        renderEmbyDashboard(embyItems, libData.Items || []);
+        // Combine all items
+        const movies = moviesData.Items || [];
+        const shows = showsData.Items || [];
+        embyItems = [...movies, ...shows];
+
+        addTerminalLine(`[Emby] Found ${movies.length} movies, ${shows.length} TV shows`);
+
+        renderEmbyDashboardFull(movies, shows, recentItems, libData.Items || []);
 
     } catch (error) {
         console.error('Emby connection failed:', error);
@@ -10123,8 +10136,81 @@ async function loadEmbyDashboard() {
         if (heroTitle) heroTitle.textContent = 'Emby Connection Failed';
         if (heroDesc) heroDesc.textContent = 'Check server URL and API key in settings';
 
-        // Show empty dashboard with connect option
-        renderEmbyDashboard([], []);
+        // Update connection badge
+        const badge = document.getElementById('embyConnectionBadge');
+        if (badge) {
+            badge.textContent = 'Disconnected';
+            badge.style.background = '#ef4444';
+        }
+    }
+}
+
+// New function to handle separate movies and shows
+function renderEmbyDashboardFull(movies, shows, recentItems, libraries) {
+    // Pick a random movie for hero (movies have better images)
+    const moviesWithImages = movies.filter(m => m.Id && m.ImageTags?.Primary);
+    if (moviesWithImages.length > 0) {
+        featuredMedia = moviesWithImages[Math.floor(Math.random() * Math.min(10, moviesWithImages.length))];
+    } else if (movies.length > 0) {
+        featuredMedia = movies[0];
+    }
+
+    // Update Hero section
+    if (featuredMedia) {
+        const heroTitle = document.getElementById('heroTitle');
+        const heroDesc = document.getElementById('heroDescription');
+        const hero = document.getElementById('netflixHero');
+
+        if (heroTitle) heroTitle.textContent = featuredMedia.Name || 'Featured Movie';
+
+        const runtime = formatRuntime(featuredMedia.RunTimeTicks);
+        const desc = featuredMedia.Overview?.substring(0, 200) || `Movie • ${featuredMedia.ProductionYear || ''}`;
+
+        if (heroDesc) heroDesc.textContent = `${desc}${desc.length >= 200 ? '...' : ''}`;
+
+        // Set hero background - use Primary as fallback
+        if (hero && featuredMedia.Id) {
+            const primaryUrl = `${EMBY_SERVER}/Items/${featuredMedia.Id}/Images/Primary?api_key=${EMBY_API_KEY}&maxWidth=1400`;
+            hero.style.backgroundImage = `url(${primaryUrl})`;
+            hero.style.backgroundSize = 'cover';
+            hero.style.backgroundPosition = 'center top';
+        }
+
+        // Update hero meta
+        const heroMeta = document.querySelector('.netflix-hero-meta');
+        if (heroMeta) {
+            const rating = featuredMedia.CommunityRating ? featuredMedia.CommunityRating.toFixed(1) : '';
+            heroMeta.innerHTML = `
+                ${rating ? `<span class="netflix-rating"><i class="fas fa-star"></i> ${rating}</span>` : ''}
+                ${featuredMedia.ProductionYear ? `<span>${featuredMedia.ProductionYear}</span>` : ''}
+                ${runtime ? `<span>${runtime}</span>` : ''}
+                <span>Movie</span>
+            `;
+        }
+    }
+
+    // Render Movies row
+    renderEmbyRow('myLibrary', movies.slice(0, 20), 'Movies');
+
+    // Render TV Shows row
+    renderEmbyRow('recentlyAdded', shows.slice(0, 15), 'TV Shows');
+
+    // Render Continue Watching - filter for movies/episodes
+    const continueItems = recentItems.filter(i => i.Type === 'Movie').slice(0, 8);
+    renderEmbyRow('continueWatching', continueItems.length > 0 ? continueItems : movies.slice(0, 5), 'Recently Added', true);
+
+    // Render sidebars - top rated movies
+    const topRated = [...movies].sort((a, b) => (b.CommunityRating || 0) - (a.CommunityRating || 0)).slice(0, 4);
+    renderEmbySidebar('popularList', topRated.length > 0 ? topRated : movies.slice(0, 4));
+    renderEmbySidebar('favoritesList', shows.slice(0, 3));
+
+    addTerminalLine(`[Emby] Dashboard loaded: ${movies.length} movies, ${shows.length} shows`);
+
+    // Update connection badge
+    const badge = document.getElementById('embyConnectionBadge');
+    if (badge) {
+        badge.textContent = `${movies.length} Movies`;
+        badge.style.background = '#22c55e';
     }
 }
 
@@ -10308,18 +10394,27 @@ async function showMediaInfo(itemId) {
 
 function renderEmbyCardWide(item) {
     const title = (item.Name || 'Untitled').substring(0, 40);
-    const imageUrl = `${EMBY_SERVER}/Items/${item.Id}/Images/Backdrop?api_key=${EMBY_API_KEY}&maxWidth=400`;
-    const progress = item.UserData?.PlayedPercentage || Math.floor(Math.random() * 70) + 10;
+    // Use Primary image for wide cards - more reliable than Backdrop
+    const imageUrl = `${EMBY_SERVER}/Items/${item.Id}/Images/Primary?api_key=${EMBY_API_KEY}&maxWidth=400&quality=90`;
+    const progress = item.UserData?.PlayedPercentage || 0;
+    const year = item.ProductionYear || '';
+    const runtime = formatRuntime(item.RunTimeTicks);
 
     return `
         <div class="netflix-card netflix-card-wide" onclick="playEmbyMedia('${item.Id}', '${escapeHtml(item.Name)}')">
             <div class="netflix-card-poster">
-                <img src="${imageUrl}" alt="${escapeHtml(title)}" onerror="this.src='${EMBY_SERVER}/Items/${item.Id}/Images/Primary?api_key=${EMBY_API_KEY}&height=200'">
-                <div class="netflix-card-overlay"><i class="fas fa-play"></i></div>
-                <div class="netflix-card-progress"><div class="netflix-card-progress-bar" style="width: ${progress}%"></div></div>
+                <img src="${imageUrl}" alt="${escapeHtml(title)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'poster-placeholder\\'><i class=\\'fas fa-film\\'></i></div>'">
+                <div class="netflix-card-overlay">
+                    <i class="fas fa-play-circle play-icon"></i>
+                </div>
+                ${progress > 0 ? `<div class="netflix-card-progress"><div class="netflix-card-progress-bar" style="width: ${progress}%"></div></div>` : ''}
             </div>
             <div class="netflix-card-info">
                 <div class="netflix-card-title">${escapeHtml(title)}</div>
+                <div class="netflix-card-meta">
+                    ${year ? `<span class="netflix-card-year">${year}</span>` : ''}
+                    ${runtime ? `<span style="color:#6b7280;font-size:11px;">${runtime}</span>` : ''}
+                </div>
             </div>
         </div>
     `;
